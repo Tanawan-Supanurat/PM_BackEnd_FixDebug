@@ -11,7 +11,6 @@ using System.Web.Http.Cors;
 
 namespace Testapi.Controllers
 {
-    //Test FixDebug comment
     public class kensakuPageController : ApiController
     {
 
