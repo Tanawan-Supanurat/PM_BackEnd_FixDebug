@@ -234,6 +234,7 @@
     <Compile Include="Models\KouteiJunjou.cs" />
     <Compile Include="Models\KTCODE.cs" />
     <Compile Include="Models\KTSTDTIME.cs" />
+    <Compile Include="Models\MAINTMS.cs" />
     <Compile Include="Models\MS_TABLE.cs" />
     <Compile Include="Models\NRPMA.cs" />
     <Compile Include="Models\NRPMB.cs" />
@@ -242,6 +243,8 @@
     <Compile Include="Models\PMKensaku.cs" />
     <Compile Include="Models\POST_PPPMMS.cs" />
     <Compile Include="Models\POST_PPPMORDER.cs" />
+    <Compile Include="Models\PPPMMAINTMS.cs" />
+    <Compile Include="Models\PPPMMAINTMS_dropDown.cs" />
     <Compile Include="Models\PPPMPOSPEC.cs" />
     <Compile Include="Models\SG_CODE_DROPDOWN.cs" />
     <Compile Include="Models\SqlTable.cs" />
@@ -251,6 +254,7 @@
     <Compile Include="Models\TESTCLASS.cs" />
     <Compile Include="Models\UserSetting_DepartmentUsername.cs" />
     <Compile Include="Models\User_Setting.cs" />
+    <Compile Include="Models\ZKMS_SOKOCODE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

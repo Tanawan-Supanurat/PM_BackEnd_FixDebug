@@ -1554,6 +1554,230 @@ namespace Testapi.Controllers
                 return result_2;
             }
         }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/ZKMS_SOKOCODE")]
+        public List<ZKMS_SOKOCODE> Get_ZKMS_SOKOCODE(string PART_NO)
+        {
+            using(var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                string sql = "SELECT SOKO_CODE FROM ZKMS WHERE PART_NO = '" + PART_NO + "'";
+                var result = DbContext.Database.SqlQuery<ZKMS_SOKOCODE>(sql).ToList();
+
+                return result;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMMAINTMS")]
+        public List<PPPMMAINTMS> GET_PPPMMAINTMS(string PART_NO ,string PART_REV_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
+
+                string sql = "select * from PPPMMAINTMS where  PART_NO = '"+PART_NO+"' and PART_REV_NO = '"+PART_REV_NO+"'";
+                var result = DbContext.Database.SqlQuery<PPPMMAINTMS>(sql).ToList();
+
+                return result;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMMAINTMS_MAINTMS")]
+        public List<EditInfo> GET_MAINTMS(string PART_NO,string PART_REV_NO, string USER_ID,string COND_PAT_NO,string WHICH_MAINTMS)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
+                USER_ID = DbContext.FixedSQLi(USER_ID);
+                COND_PAT_NO = DbContext.FixedSQLi(COND_PAT_NO);
+                WHICH_MAINTMS = DbContext.FixedSQLi(WHICH_MAINTMS);
+
+                //  WHICH_MAINTMS 取得対象を確認
+                //　1：１次情報
+                //　2：２次情報
+                string TABLE_NAME = "";
+                string TABLE_NAME_TRAGET = "PPPMMAINTMS";
+                if (WHICH_MAINTMS == "1")
+                {
+                    TABLE_NAME = "MAINTMS1";
+                }
+                else if(WHICH_MAINTMS == "2")
+                {
+                    TABLE_NAME = "MAINTMS2";
+                }
+
+                // CheckIndiviSet 個人並び順登録確認
+                // True  : 登録
+                // False : 未登録
+                bool CheckIndiviSet = CheckIndivi(USER_ID, TABLE_NAME);
+
+                //　MS_TABLE_SQL 他のデータベースにアクセスリスト取得のSQLコマンド
+                string MS_TABLEL_SQL = "select distinct MS_TABLE MS_TABLE_Find from PPPMTABLEHDRMNG where table_name = '" + TABLE_NAME + "' and MS_TABLE != '0'";
+                //　reusult_ms_table_ktstdtim 他のデータベースにアクセスリスト
+                var reusult_ms_table = DbContext.Database.SqlQuery<MS_TABLE>(MS_TABLEL_SQL).ToList();
+
+
+                //　テーブル内データが別タイプのため、文字タイプデータと数字タイプデータを別々検査必要があります
+                //　column_name テーブルの列名リスト(文字タイプ)を取得
+                string column_name = "SELECT COLUMN_NAME FROM all_tab_cols where TABLE_NAME = '" + TABLE_NAME_TRAGET + "' and DATA_TYPE != 'NUMBER' order by INTERNAL_COLUMN_ID";
+                //　column_name_num テーブルの列名リスト(数字タイプ)を取得
+                string column_name_num = "SELECT COLUMN_NAME FROM all_tab_cols where TABLE_NAME = '" + TABLE_NAME_TRAGET + "' and DATA_TYPE = 'NUMBER' order by INTERNAL_COLUMN_ID";
+                //　In_Con,In_Con_Num,In_Con_Num_where SQLコマンドにデータ居場所を特定するプロパティ
+                string In_Con = "";
+                string In_Con_Num = "";
+                string In_Con_Num_where = "";
+                var result = DbContext.Database.SqlQuery<COLUMNNAME>(column_name).ToList();
+                var result_num = DbContext.Database.SqlQuery<COLUMNNAME>(column_name_num).ToList();
+                //　検索結果のリストを SQLコマンドに変更
+                //　テーブルの列名リスト(文字タイプ)
+                foreach (var str in result)
+                {
+                    //　下記で　SQLコマンドで使用
+                    //　             　　　　　　 In_Con
+                    //                             ↓
+                    //　Where ○○　in ('○○','○○',.....,'○○')
+                    if (In_Con == "")
+                    {
+                        In_Con = str.COLUMN_NAME;
+                    }
+                    else
+                    {
+                        In_Con += "," + str.COLUMN_NAME;
+                    }
+                }
+                //　テーブルの列名リスト(数字タイプ)
+                foreach (var str in result_num)
+                {
+                    //　下記で　SQLコマンドで使用
+                    //　              　In_Con_Num,In_Con_Num_where
+                    //                             ↓
+                    //　Where ○○　in ('○○','○○',.....,'○○')
+                    if (In_Con_Num == "")
+                    {
+                        In_Con_Num = str.COLUMN_NAME;
+                        In_Con_Num_where = "'" + str.COLUMN_NAME + "'";
+                    }
+                    else
+                    {
+                        In_Con_Num += "," + str.COLUMN_NAME;
+                        In_Con_Num_where += ",'" + str.COLUMN_NAME + "'";
+                    }
+                }
+                string sql_2 = "";
+                string sql_3 = "";
+
+                //　クライアント側に送るデータフォーマットを設定　
+                sql_2 += "select PMTH.AUTH_TYPE,PMHD.*,NEWTABLE.FIELD_VALUE,MS_1.CM_CODE_SETUMEI FIELD_EXPLAIN from( ";
+                //　テーブル項目の表示状態を取得
+                //　MAX(AUTH_TYPE) 表示状態が複数がある場合高い権限の方に優先する
+                //　AUTH_TYPE   値  状態　　　　 優先順
+                //              2　変更可能     　高
+                //              1  表示　　　　　 
+                //              0  未表示　　　　 低
+                sql_2 += "select TABLE_NAME, FIELD_NAME, MAX(AUTH_TYPE) AUTH_TYPE from PPPMTABLEAUTHMNG where ";
+                sql_2 += "MNG_NO IN (select ROLE_ID from CPUMGSSO_USER_ROLE_MST where USER_ID = '" + USER_ID + "' ";
+                sql_2 += "and ROLE_ID in ('1','2','3','4','5','6','7','8','9','10','99')) and TABLE_NAME = '" + TABLE_NAME + "' group by FIELD_NAME,TABLE_NAME";
+                sql_2 += " ) PMTH ";
+
+                //　テーブルの表示設定を取得
+                //　PPPMTABLEHDRMNG　テーブルから表示の設定取得
+                sql_2 += " full join PPPMTABLEHDRMNG PMHD on PMHD.TABLE_NAME = PMTH.TABLE_NAME and PMHD.FIELD_NAME = PMTH.FIELD_NAME";
+
+                //　データ値を取得　例の値から行の値に変更必要ので UNPIVOTを使用
+                //  取得したデータは下記の通りになります。
+                // 　　　　　　　　変更前                                                          変更後
+                //  FIELD_NAME_1   FIELD_NAME_2   ....  FIELD_NAME_X　　　　=> 　　　　 FIELD_NAME　　　FIELD_VALUE　
+                //  FIELD_VALUE_1  FIELD_VALUE_2  ....  FIELD_VALUE_X                   FIELD_NAME_1　　FIELD_VALUE_1
+                //                                                                      FIELD_NAME_2    FIELD_VALUE_2
+                //                                                                                ........
+                //                                                                      FIELD_NAME_X    FIELD_VALUE_X
+                //
+                sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM " + TABLE_NAME_TRAGET;
+                sql_2 += " where PART_NO =  '" + PART_NO + "' AND PART_REV_NO = '" + PART_REV_NO + "' AND COND_PAT_NO = '" + COND_PAT_NO +"' ";
+                sql_2 += ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
+
+                //基本情報を　sql_3に保存
+                sql_3 = sql_2;
+
+                //  IN_Con 文字タイプ値だけを検索条件を追加
+                sql_2 += " IN(" + In_Con + " ))) ";
+                sql_2 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
+
+                //  データ説明例を追加
+                sql_2 += " left join (";
+                // UNION_SQL
+                string UNION_SQL = "";
+                foreach (var item in reusult_ms_table)
+                {
+                    if (UNION_SQL == "")
+                    {
+                        UNION_SQL += SqlTable.GetSQLUnion(item.MS_TABLE_Find, TABLE_NAME, "");
+                    }
+                    else
+                    {
+                        string Ckvoid = "";
+                        Ckvoid += SqlTable.GetSQLUnion(item.MS_TABLE_Find, TABLE_NAME, "");
+                        if (Ckvoid != "")
+                        {
+                            UNION_SQL += " UNION " + Ckvoid;
+                        }
+                    }
+                }
+
+                // 特定のデータに説明追加
+                UNION_SQL += SqlTable.getSQLUnion(TABLE_NAME, "", "", "");
+                sql_2 += UNION_SQL;
+
+                sql_2 += " where PMTH.TABLE_NAME = '" + TABLE_NAME + "' ";
+
+                //  AUTH_TYPE <> 0　検索条件に未表示状態を取り除く
+                //  PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")" 文字タイプだけ検索条件を追加
+                sql_2 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")";
+
+                //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
+                sql_2 = CheckIndiviSet ?
+                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
+                    : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+
+                //  In_Con_Num 数字タイプ値だけを検索条件を追加
+                sql_3 += " IN(" + In_Con_Num + " ))) ";
+                sql_3 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
+
+
+                //  データ説明例を追加
+                sql_3 += " left join (" + UNION_SQL;
+
+
+                //  AUTH_TYPE <> 0　検索条件に未表示状態を取り除く
+                //  PMHD.FIELD_NAME IN (" + In_Con_Num_where + ")" 数字タイプだけ検索条件を追加
+                sql_3 += " where PMTH.TABLE_NAME = '" + TABLE_NAME + "' ";
+                sql_3 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME IN (" + In_Con_Num_where + ")";
+
+                //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
+                sql_3 = CheckIndiviSet ?
+                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
+                    : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
+
+                //  検査を開始する
+                var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
+                var result_3 = DbContext.Database.SqlQuery<EditInfo>(sql_3).ToList();
+
+                //  検査結果を結合
+                result_2.AddRange(result_3);
+
+                //  並び順の通りに並べる
+                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                return result_2;
+            }
+        }
+
+
         //GET api end HERE
         [HttpPost]
         [Route("api/KensakuBtnPost/PPPMMS")]
