@@ -1577,7 +1577,7 @@ namespace Testapi.Controllers
                 PART_NO = DbContext.FixedSQLi(PART_NO);
                 PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
 
-                string sql = "select * from PPPMMAINTMS where  PART_NO = '"+PART_NO+"' and PART_REV_NO = '"+PART_REV_NO+"'";
+                string sql = "select * from PPPMMAINTMS where  PART_NO = '"+PART_NO+"' and PART_REV_NO = '"+PART_REV_NO+ "' order by  PRIORITY";
                 var result = DbContext.Database.SqlQuery<PPPMMAINTMS>(sql).ToList();
 
                 return result;
@@ -1586,7 +1586,7 @@ namespace Testapi.Controllers
 
         [HttpGet]
         [Route("api/KensakuBtnGet/PPPMMAINTMS_MAINTMS")]
-        public List<EditInfo> GET_MAINTMS(string PART_NO,string PART_REV_NO, string USER_ID,string COND_PAT_NO,string WHICH_MAINTMS)
+        public List<EditInfo> GET_MAINTMS(string PART_NO,string PART_REV_NO, string USER_ID,string COND_PAT_NO, string WHICH_MAINTMS, string PART_LOCATION)
         {
             using (var DbContext = new TablesDbContext())
             {
@@ -1595,6 +1595,7 @@ namespace Testapi.Controllers
                 USER_ID = DbContext.FixedSQLi(USER_ID);
                 COND_PAT_NO = DbContext.FixedSQLi(COND_PAT_NO);
                 WHICH_MAINTMS = DbContext.FixedSQLi(WHICH_MAINTMS);
+                PART_LOCATION = DbContext.FixedSQLi(PART_LOCATION);
 
                 //  WHICH_MAINTMS 取得対象を確認
                 //　1：１次情報
@@ -1697,7 +1698,7 @@ namespace Testapi.Controllers
                 //                                                                      FIELD_NAME_X    FIELD_VALUE_X
                 //
                 sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM " + TABLE_NAME_TRAGET;
-                sql_2 += " where PART_NO =  '" + PART_NO + "' AND PART_REV_NO = '" + PART_REV_NO + "' AND COND_PAT_NO = '" + COND_PAT_NO +"' ";
+                sql_2 += " where PART_NO =  '" + PART_NO + "' AND PART_REV_NO = '" + PART_REV_NO + "' AND COND_PAT_NO = '" + COND_PAT_NO + "' AND PART_LOCATION = '"+ PART_LOCATION +"' ";
                 sql_2 += ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
 
                 //基本情報を　sql_3に保存
@@ -1776,7 +1777,37 @@ namespace Testapi.Controllers
                 return result_2;
             }
         }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/SPSCCONIDMS_DROPDOWN")]
+        public List<SPSCCONDIIDMS_DROPDOWN> Get_SPSCCONIDMS_DROPDOWN()
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                string sql = "select CM_CODE,DATA1 ,CM_CODE_SETUMEI from cmmsb where CM_KOUNO = '805' order by CM_CODE";
+                var result = DbContext.Database.SqlQuery<SPSCCONDIIDMS_DROPDOWN>(sql).ToList();
+                return result;
+            }
+        }
 
+        [HttpGet]
+        [Route("api/KensakuBtnGet/SPSCCONIDMS")]
+        public List<SPSCCONDIDMS> GET_SPSCCONIDMS(string PART_NO,string PART_REV_NO,string PART_LOCATION,string COND_PAT_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
+                PART_LOCATION = DbContext.FixedSQLi(PART_LOCATION);
+                COND_PAT_NO = DbContext.FixedSQLi(COND_PAT_NO);
+
+                string sql = "select sp.COND_SPEC_ITEM_NO,sp.COND_STAT,sp.COND_CODE,sa.ITEM_NAME_LOC1 from spsccondidms sp left join spscitemmsa sa on sp.COND_SPEC_ITEM_NO = sa.SPEC_ITEM_NO " +
+                             "where sp.CONDITION_ID in (select CONDITION_ID from PPPMMAINTCONDMS where PART_NO = '"+ PART_NO + "' and PART_REV_NO = '"+ PART_REV_NO + 
+                             "' and PART_LOCATION = '"+ PART_LOCATION + "' and COND_PAT_NO = '"+COND_PAT_NO+"')";
+
+                var result = DbContext.Database.SqlQuery<SPSCCONDIDMS>(sql).ToList();
+                return result;
+            }
+        }
 
         //GET api end HERE
         [HttpPost]

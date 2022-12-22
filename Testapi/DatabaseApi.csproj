@@ -247,6 +247,8 @@
     <Compile Include="Models\PPPMMAINTMS_dropDown.cs" />
     <Compile Include="Models\PPPMPOSPEC.cs" />
     <Compile Include="Models\SG_CODE_DROPDOWN.cs" />
+    <Compile Include="Models\SPSCCONDIDMS.cs" />
+    <Compile Include="Models\SPSCCONDIIDMS_DROPDOWN.cs" />
     <Compile Include="Models\SqlTable.cs" />
     <Compile Include="Models\SYDBGRID.cs" />
     <Compile Include="Models\TANTAI.cs" />
