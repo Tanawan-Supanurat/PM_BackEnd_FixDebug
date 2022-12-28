@@ -1378,6 +1378,20 @@ namespace Testapi.Controllers
             }
         }
         [HttpGet]
+        [Route("api/KensakuBtnGet/ZKMS_KOUBA")]
+        public List<CM_KOUNOLIST> GET_FT_ZKMS_KOUBA(string DATA4)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                DATA4 = DbContext.FixedSQLi(DATA4);
+
+                string sql = "select CM_CODE,CM_CODE_SETUMEI from CMMSB where CM_KOUNO = '010' and CM_CODE in ( SELECT DATA3 from CMMSB WHERE CM_KOUNO = '310' and DATA4 = '" + DATA4 +"') ";
+                var result = DbContext.Database.SqlQuery<CM_KOUNOLIST>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
         [Route("api/KensakuBtnGet/ZKMS")]
         public List<EditInfo> GET_ZKMS(string PART_NO, string SOKO_CODE, string USER_ID)
         {
@@ -1551,6 +1565,62 @@ namespace Testapi.Controllers
 
                 //  並び順の通りに並べる
                 result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                return result_2;
+            }
+        }
+        
+        [HttpGet]
+        [Route("api/KensakuBtnGet/ZKMS_NEW")]
+        public List<EditInfo>GET_ZKMS_NEW(string USER_ID)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                string TABLE_NAME = "ZKMS";
+                USER_ID = DbContext.FixedSQLi(USER_ID);
+
+                // CheckIndiviSet 個人並び順登録確認
+                // True  : 登録
+                // False : 未登録
+                bool CheckIndiviSet = CheckIndivi(USER_ID, TABLE_NAME);
+
+                //　MS_TABLE_SQL 他のデータベースにアクセスリスト取得のSQLコマンド
+                string MS_TABLEL_SQL = "select distinct MS_TABLE MS_TABLE_Find from PPPMTABLEHDRMNG where table_name = '" + TABLE_NAME + "' and MS_TABLE != '0'";
+                //　reusult_ms_table_ktstdtim 他のデータベースにアクセスリスト
+                var reusult_ms_table = DbContext.Database.SqlQuery<MS_TABLE>(MS_TABLEL_SQL).ToList();
+                string sql_2 = "";
+
+                //　クライアント側に送るデータフォーマットを設定　
+                sql_2 += "select PMTH.AUTH_TYPE,PMHD.*,null as FIELD_VALUE from( ";
+                //　テーブル項目の表示状態を取得
+                //　MAX(AUTH_TYPE) 表示状態が複数がある場合高い権限の方に優先する
+                //　AUTH_TYPE   値  状態　　　　 優先順
+                //              2　変更可能     　高
+                //              1  表示　　　　　 
+                //              0  未表示　　　　 低
+                sql_2 += "select TABLE_NAME, FIELD_NAME, MAX(AUTH_TYPE) AUTH_TYPE from PPPMTABLEAUTHMNG where ";
+                sql_2 += "MNG_NO IN (select ROLE_ID from CPUMGSSO_USER_ROLE_MST where USER_ID = '" + USER_ID + "' ";
+                sql_2 += "and ROLE_ID in ('1','2','3','4','5','6','7','8','9','10','99')) and TABLE_NAME = '" + TABLE_NAME + "' group by FIELD_NAME,TABLE_NAME";
+                sql_2 += " ) PMTH ";
+
+                //　テーブルの表示設定を取得
+                //　PPPMTABLEHDRMNG　テーブルから表示の設定取得
+                sql_2 += " full join PPPMTABLEHDRMNG PMHD on PMHD.TABLE_NAME = PMTH.TABLE_NAME and PMHD.FIELD_NAME = PMTH.FIELD_NAME";
+
+                sql_2 += " where PMTH.TABLE_NAME = '" + TABLE_NAME + "' ";
+
+                //  AUTH_TYPE <> 0　検索条件に未表示状態を取り除く
+                //  PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")" 文字タイプだけ検索条件を追加
+                sql_2 += " and AUTH_TYPE <> 0 ";
+
+                //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
+                sql_2 = CheckIndiviSet ?
+                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
+                    : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+
+                //  検査を開始する
+                var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
+
                 return result_2;
             }
         }
@@ -1809,6 +1879,36 @@ namespace Testapi.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("api/KensakuBtnGet/SPSCITEMMSA")]
+        public List<SPSCITEMMSA> Get_SPSCITEMMSA(string PRODUCT_TYPE,string TODAY)
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                PRODUCT_TYPE = Dbcontext.FixedSQLi(PRODUCT_TYPE);
+                TODAY = Dbcontext.FixedSQLi(TODAY);
+
+                string sql = "SELECT * FROM SPSCITEMMSA WHERE DEL_TYPE = '0' AND START_DATE <= '"+TODAY +"' AND STOP_DATE >= '"+ TODAY + "' AND PRODUCT_TYPE ='"+ PRODUCT_TYPE+ "'  and SPEC_ITEM_NO like '10%' order by SPEC_ITEM_NO";
+                var result = Dbcontext.Database.SqlQuery<SPSCITEMMSA>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/SPSCITEMMSB")]
+        public List<SPSCITEMMSB> Get_SPSCITEMMSB(string SPEC_ITEM_NO, string TODAY)
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                SPEC_ITEM_NO = Dbcontext.FixedSQLi(SPEC_ITEM_NO);
+                TODAY = Dbcontext.FixedSQLi(TODAY);
+
+                string sql = "SELECT * FROM SPSCITEMMSB WHERE START_DATE <= '" + TODAY + "' AND STOP_DATE >= '" + TODAY + "' AND SPEC_ITEM_NO ='" + SPEC_ITEM_NO + "' order by SPEC_ITEM_NO";
+                var result = Dbcontext.Database.SqlQuery<SPSCITEMMSB>(sql).ToList();
+
+                return result;
+            }
+        }
         //GET api end HERE
         [HttpPost]
         [Route("api/KensakuBtnPost/PPPMMS")]
@@ -2569,7 +2669,7 @@ namespace Testapi.Controllers
                     else
                     {
                         // INSERT　新規登録コマンド
-                        string SQL_INSERT = "INSERT INTO PPPMPOSPEC (PART_NO,WORK_CODE,PO_SPEC1,PO_SPEC2,PO_SPEC3,UPD_WHO,UPD_WHEN,ENT_WHO,ENT_WHEN)"
+                        string SQL_INSERT = "INSERT INTO ZKMS (PART_NO,WORK_CODE,PO_SPEC1,PO_SPEC2,PO_SPEC3,UPD_WHO,UPD_WHEN,ENT_WHO,ENT_WHEN)"
                                           + "VALUES ('" + DbContext.FixedSQLi(PO.PART_NO) + "','" + DbContext.FixedSQLi(PO.WORK_CODE) + "','" //PK_CODE
                                           + DbContext.FixedSQLi(PO.PO_SPEC1) + "','" + DbContext.FixedSQLi(PO.PO_SPEC2) + "','" + DbContext.FixedSQLi(PO.PO_SPEC3) + "','"
                                           + DbContext.FixedSQLi(PO.UPD_WHO) + "','" + DbContext.FixedSQLi(PO.UPD_WHEN) + "','"
@@ -2581,6 +2681,106 @@ namespace Testapi.Controllers
 
             }
         }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/ZKMS")]
+        public void POST_ZKMS(ZKMS ZK)
+        {
+            using (var DbContext = new TablesDbContext()){
+                //　更新したいデータは既に登録しているかを確認
+                string SQL_Check_ENT = "SELECT COUNT(*) COUNT FROM ZKMS WHERE SOKO_CODE = '" + DbContext.FixedSQLi(ZK.SOKO_CODE)
+                                     + "' AND PART_NO = '" + DbContext.FixedSQLi(ZK.PART_NO) + "'";
+                var result_Check_ENT = DbContext.Database.SqlQuery<Count_ENT>(SQL_Check_ENT).ToList();
+                
+                //  PK_ID　SYDBGRIDテーブルのプライマリーキー名のリスト
+                List<string> PK_ID = new List<string>() { "SOKO_CODE", "PART_NO", "EZ_STOCK_FLAG", "MAX_VALUE_SET_TYPE", "MIN_SAFETY_SET_TYPE" };
+                string Set_sql = "";
+                string Ins_sql_name = "";
+                string Ins_sql_value= "";
+                string Where_sql = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = ZK.GetType().GetProperties();
+                foreach (var item in ZK.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(ZK) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(ZK).ToString());
+                    }
+                }
+                //  登録している場合データを更新する
+                if (result_Check_ENT[0].COUNT != 0)
+                {
+                    int index = -1;
+                    foreach (var item in list_value)
+                    {
+                        index += 1;
+                        //  プライマリーキーじゃないものSETコマンドに変換
+                        if (item != "null" && !PK_ID.Contains(list_name[index]))
+                        {
+                            if (Set_sql == "")
+                            {
+                                Set_sql += "SET " + list_name[index] + " = '" + item + "' ";
+                            }
+                            else
+                            {
+                                Set_sql += ", " + list_name[index] + " = '" + item + "' ";
+                            }
+                        }
+                        else if (item != "null" && PK_ID.Contains(list_name[index]))
+                        {
+                            if (Where_sql == "")
+                            {
+                                Where_sql += "WHERE " + list_name[index] + " = '" + item + "' ";
+                            }
+                            else
+                            {
+                                Where_sql += " and " + list_name[index] + " = '" + item + "' ";
+                            }
+                        }
+                    }
+
+                    string sql = "UPDATE ZKMS " + Set_sql + Where_sql;
+
+                    if (Set_sql != "")
+                    {
+                        DbContext.Database.ExecuteSqlCommand(sql);
+                    }
+                }
+                //  登録していない場合、新規登録する
+                else
+                {
+                    int index = -1;
+                    foreach (var item in list_name)
+                    {
+                        index += 1;
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "(" + list_value[index];
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += "," + list_value[index];
+                        }
+                    }
+                    Ins_sql_name += ") ";
+                    Ins_sql_value += ")";
+                    // INSERT　新規登録コマンド
+                    string SQL_INSERT = "INSERT INTO ZKMS " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                    //  実行
+                    DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
+                }
+                
+            }
+        }
+        
         // PUT api/<controller>/5
         public void Put(int id, [FromBody]string value)
         {

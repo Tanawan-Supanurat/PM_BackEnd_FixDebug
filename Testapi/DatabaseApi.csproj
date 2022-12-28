@@ -249,6 +249,8 @@
     <Compile Include="Models\SG_CODE_DROPDOWN.cs" />
     <Compile Include="Models\SPSCCONDIDMS.cs" />
     <Compile Include="Models\SPSCCONDIIDMS_DROPDOWN.cs" />
+    <Compile Include="Models\SPSCITEMMSA.cs" />
+    <Compile Include="Models\SPSCITEMMSB.cs" />
     <Compile Include="Models\SqlTable.cs" />
     <Compile Include="Models\SYDBGRID.cs" />
     <Compile Include="Models\TANTAI.cs" />
@@ -256,6 +258,8 @@
     <Compile Include="Models\TESTCLASS.cs" />
     <Compile Include="Models\UserSetting_DepartmentUsername.cs" />
     <Compile Include="Models\User_Setting.cs" />
+    <Compile Include="Models\ZKMS.cs" />
+    <Compile Include="Models\ZKMS_KOUBA.cs" />
     <Compile Include="Models\ZKMS_SOKOCODE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
