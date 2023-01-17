@@ -194,6 +194,7 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -236,6 +237,7 @@
     <Compile Include="Models\KTSTDTIME.cs" />
     <Compile Include="Models\MAINTMS.cs" />
     <Compile Include="Models\MS_TABLE.cs" />
+    <Compile Include="Models\NEW_CONDITION_ID.cs" />
     <Compile Include="Models\NRPMA.cs" />
     <Compile Include="Models\NRPMB.cs" />
     <Compile Include="Models\NRPMHIS.cs" />
@@ -243,11 +245,15 @@
     <Compile Include="Models\PMKensaku.cs" />
     <Compile Include="Models\POST_PPPMMS.cs" />
     <Compile Include="Models\POST_PPPMORDER.cs" />
+    <Compile Include="Models\PPPMMAINTCONDMS_DEL.cs" />
     <Compile Include="Models\PPPMMAINTMS.cs" />
     <Compile Include="Models\PPPMMAINTMS_dropDown.cs" />
     <Compile Include="Models\PPPMPOSPEC.cs" />
     <Compile Include="Models\SG_CODE_DROPDOWN.cs" />
     <Compile Include="Models\SPSCCONDIDMS.cs" />
+    <Compile Include="Models\SPSCCONDIDMS_DEL.cs" />
+    <Compile Include="Models\SPSCCONDIDMS_INSERT.cs" />
+    <Compile Include="Models\SPSCCONDIDM_UPDATE.cs" />
     <Compile Include="Models\SPSCCONDIIDMS_DROPDOWN.cs" />
     <Compile Include="Models\SPSCITEMMSA.cs" />
     <Compile Include="Models\SPSCITEMMSB.cs" />
