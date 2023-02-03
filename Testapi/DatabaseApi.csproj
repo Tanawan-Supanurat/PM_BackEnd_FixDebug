@@ -218,6 +218,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AUTH_ST.cs" />
+    <Compile Include="Models\CHCODE.cs" />
     <Compile Include="Models\CHMSA.cs" />
     <Compile Include="Models\CHMSA_TABLE.cs" />
     <Compile Include="Models\CHMSB.cs" />
@@ -225,7 +226,9 @@
     <Compile Include="Models\CMCODE.cs" />
     <Compile Include="Models\CM_KOUNOLIST.cs" />
     <Compile Include="Models\COLUMNNAME.cs" />
+    <Compile Include="Models\COND_ID.cs" />
     <Compile Include="Models\Count_ENT.cs" />
+    <Compile Include="Models\CUR_TIME.cs" />
     <Compile Include="Models\DialogKoumoku.cs" />
     <Compile Include="Models\EditInfo.cs" />
     <Compile Include="Models\HeaderID.cs" />
@@ -245,7 +248,9 @@
     <Compile Include="Models\PMKensaku.cs" />
     <Compile Include="Models\POST_PPPMMS.cs" />
     <Compile Include="Models\POST_PPPMORDER.cs" />
+    <Compile Include="Models\PPPMDOCMS.cs" />
     <Compile Include="Models\PPPMMAINTCONDMS_DEL.cs" />
+    <Compile Include="Models\PPPMMAINTCONDMS_UPDATE.cs" />
     <Compile Include="Models\PPPMMAINTMS.cs" />
     <Compile Include="Models\PPPMMAINTMS_dropDown.cs" />
     <Compile Include="Models\PPPMPOSPEC.cs" />
@@ -259,8 +264,10 @@
     <Compile Include="Models\SPSCITEMMSB.cs" />
     <Compile Include="Models\SqlTable.cs" />
     <Compile Include="Models\SYDBGRID.cs" />
+    <Compile Include="Models\TANICODE.cs" />
     <Compile Include="Models\TANTAI.cs" />
     <Compile Include="Models\TANTOU.cs" />
+    <Compile Include="Models\TANTOCODE.cs" />
     <Compile Include="Models\TESTCLASS.cs" />
     <Compile Include="Models\UserSetting_DepartmentUsername.cs" />
     <Compile Include="Models\User_Setting.cs" />

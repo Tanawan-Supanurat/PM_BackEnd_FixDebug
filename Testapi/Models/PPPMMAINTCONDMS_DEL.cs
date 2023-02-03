@@ -11,6 +11,6 @@ namespace Testapi.Models
         public string PART_REV_NO { get; set; }
         public string PART_LOCATION { get; set; }
         public string COND_PAT_NO { get; set; }
-        public string COND_SEQ_NO { get; set; }
+        public string MAX_LENGHT { get; set; }
     }
 }

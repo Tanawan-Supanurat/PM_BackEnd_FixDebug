@@ -7,6 +7,7 @@ namespace Testapi.Models
 {
     public class SPSCCONDIDMS
     {
+        public string PRODUCT_TYPE { get; set; }
         public string COND_SPEC_ITEM_NO { get; set; }
         public string COND_STAT {get;set;}
         public string COND_CODE {get;set;}
