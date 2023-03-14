@@ -799,7 +799,7 @@ namespace Testapi.Controllers
             using (var DbContext = new TablesDbContext())
             {
                 PIC_PART_NO = DbContext.FixedSQLi(PIC_PART_NO);
-                string sql = "select PART_NO,DOC_SEQ_NO,DOC_FILE_NAME from pppmdocms where PART_NO = '" + PIC_PART_NO + "'";
+                string sql = "select * from pppmdocms where PART_NO = '5310A1'";
                 var result = DbContext.Database.SqlQuery<Pic>(sql).ToList();
                 return result;
             }
