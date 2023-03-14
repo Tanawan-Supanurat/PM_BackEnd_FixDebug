@@ -298,7 +298,7 @@ namespace Testapi.Controllers
         }
         [HttpGet]
         [Route("api/KensakuBtnGet/TANI_CODE")]
-        public List<TANICODE>getTANICODE(string LANGUAGE)
+        public List<TANICODE> getTANICODE(string LANGUAGE)
         {
             using (var DbContext = new TablesDbContext())
             {
@@ -313,7 +313,7 @@ namespace Testapi.Controllers
 
         [HttpGet]
         [Route("api/KensakuBtnGet/KTCODE")]
-        public List<KTCODE> getKTCODE(string PART_NO, string PLANT_NO,string TODAY)
+        public List<KTCODE> getKTCODE(string PART_NO, string PLANT_NO, string TODAY)
         {
             using (var DbContext = new TablesDbContext())
             {
@@ -1443,7 +1443,7 @@ namespace Testapi.Controllers
             {
                 DATA4 = DbContext.FixedSQLi(DATA4);
 
-                string sql = "select CM_CODE,CM_CODE_SETUMEI from CMMSB where CM_KOUNO = '010' and CM_CODE in ( SELECT DATA3 from CMMSB WHERE CM_KOUNO = '310' and DATA4 = '" + DATA4 +"') ";
+                string sql = "select CM_CODE,CM_CODE_SETUMEI from CMMSB where CM_KOUNO = '010' and CM_CODE in ( SELECT DATA3 from CMMSB WHERE CM_KOUNO = '310' and DATA4 = '" + DATA4 + "') ";
                 var result = DbContext.Database.SqlQuery<CM_KOUNOLIST>(sql).ToList();
 
                 return result;
@@ -1626,10 +1626,10 @@ namespace Testapi.Controllers
                 return result_2;
             }
         }
-        
+
         [HttpGet]
         [Route("api/KensakuBtnGet/ZKMS_NEW")]
-        public List<EditInfo>GET_ZKMS_NEW(string USER_ID)
+        public List<EditInfo> GET_ZKMS_NEW(string USER_ID)
         {
             using (var DbContext = new TablesDbContext())
             {
@@ -1686,7 +1686,7 @@ namespace Testapi.Controllers
         [Route("api/KensakuBtnGet/ZKMS_SOKOCODE")]
         public List<ZKMS_SOKOCODE> Get_ZKMS_SOKOCODE(string PART_NO)
         {
-            using(var DbContext = new TablesDbContext())
+            using (var DbContext = new TablesDbContext())
             {
                 PART_NO = DbContext.FixedSQLi(PART_NO);
                 string sql = "SELECT SOKO_CODE FROM ZKMS WHERE PART_NO = '" + PART_NO + "'";
@@ -1698,14 +1698,14 @@ namespace Testapi.Controllers
 
         [HttpGet]
         [Route("api/KensakuBtnGet/PPPMMAINTMS")]
-        public List<PPPMMAINTMS> GET_PPPMMAINTMS(string PART_NO ,string PART_REV_NO)
+        public List<PPPMMAINTMS> GET_PPPMMAINTMS(string PART_NO, string PART_REV_NO)
         {
             using (var DbContext = new TablesDbContext())
             {
                 PART_NO = DbContext.FixedSQLi(PART_NO);
                 PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
 
-                string sql = "select * from PPPMMAINTMS where  PART_NO = '"+PART_NO+"' and PART_REV_NO = '"+PART_REV_NO+ "' order by  PRIORITY";
+                string sql = "select * from PPPMMAINTMS where  PART_NO = '" + PART_NO + "' and PART_REV_NO = '" + PART_REV_NO + "' order by  PRIORITY";
                 var result = DbContext.Database.SqlQuery<PPPMMAINTMS>(sql).ToList();
 
                 return result;
@@ -1714,7 +1714,7 @@ namespace Testapi.Controllers
 
         [HttpGet]
         [Route("api/KensakuBtnGet/PPPMMAINTMS_MAINTMS")]
-        public List<EditInfo> GET_MAINTMS(string PART_NO,string PART_REV_NO, string USER_ID,string COND_PAT_NO, string WHICH_MAINTMS, string PART_LOCATION)
+        public List<EditInfo> GET_MAINTMS(string PART_NO, string PART_REV_NO, string USER_ID, string COND_PAT_NO, string WHICH_MAINTMS, string PART_LOCATION)
         {
             using (var DbContext = new TablesDbContext())
             {
@@ -1734,7 +1734,7 @@ namespace Testapi.Controllers
                 {
                     TABLE_NAME = "MAINTMS1";
                 }
-                else if(WHICH_MAINTMS == "2")
+                else if (WHICH_MAINTMS == "2")
                 {
                     TABLE_NAME = "MAINTMS2";
                 }
@@ -1826,7 +1826,7 @@ namespace Testapi.Controllers
                 //                                                                      FIELD_NAME_X    FIELD_VALUE_X
                 //
                 sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM " + TABLE_NAME_TRAGET;
-                sql_2 += " where PART_NO =  '" + PART_NO + "' AND PART_REV_NO = '" + PART_REV_NO + "' AND COND_PAT_NO = '" + COND_PAT_NO + "' AND PART_LOCATION = '"+ PART_LOCATION +"' ";
+                sql_2 += " where PART_NO =  '" + PART_NO + "' AND PART_REV_NO = '" + PART_REV_NO + "' AND COND_PAT_NO = '" + COND_PAT_NO + "' AND PART_LOCATION = '" + PART_LOCATION + "' ";
                 sql_2 += ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
 
                 //基本情報を　sql_3に保存
@@ -1919,7 +1919,7 @@ namespace Testapi.Controllers
 
         [HttpGet]
         [Route("api/KensakuBtnGet/SPSCCONIDMS")]
-        public List<SPSCCONDIDMS> GET_SPSCCONIDMS(string PART_NO,string PART_REV_NO,string PART_LOCATION,string COND_PAT_NO)
+        public List<SPSCCONDIDMS> GET_SPSCCONIDMS(string PART_NO, string PART_REV_NO, string PART_LOCATION, string COND_PAT_NO)
         {
             using (var DbContext = new TablesDbContext())
             {
@@ -1929,8 +1929,8 @@ namespace Testapi.Controllers
                 COND_PAT_NO = DbContext.FixedSQLi(COND_PAT_NO);
 
                 string sql = "select sp.COND_SPEC_ITEM_NO,sp.COND_STAT,sp.COND_CODE,sp.PRODUCT_TYPE,sa.ITEM_NAME_LOC1,pm.PART_NO,pm.PART_REV_NO,pm.PART_LOCATION,pm.COND_PAT_NO,pm.COND_SEQ_NO,pm.CONDITION_ID from spsccondidms sp left join spscitemmsa sa on sp.COND_SPEC_ITEM_NO = sa.SPEC_ITEM_NO left join PPPMMAINTCONDMS pm on pm.CONDITION_ID = sp.CONDITION_ID" +
-                             " where sp.CONDITION_ID in (select CONDITION_ID from PPPMMAINTCONDMS where PART_NO = '"+ PART_NO + "' and PART_REV_NO = '"+ PART_REV_NO + 
-                             "' AND PART_LOCATION = '"+ PART_LOCATION + "' and COND_PAT_NO = '"+COND_PAT_NO+"')" +
+                             " where sp.CONDITION_ID in (select CONDITION_ID from PPPMMAINTCONDMS where PART_NO = '" + PART_NO + "' and PART_REV_NO = '" + PART_REV_NO +
+                             "' AND PART_LOCATION = '" + PART_LOCATION + "' and COND_PAT_NO = '" + COND_PAT_NO + "')" +
                              "AND PART_NO = '" + PART_NO + "' and PART_REV_NO = '" + PART_REV_NO + "' AND PART_LOCATION = '" + PART_LOCATION + "' and COND_PAT_NO = '" + COND_PAT_NO + "' and sa.PRODUCT_TYPE ='1'";
 
                 var result = DbContext.Database.SqlQuery<SPSCCONDIDMS>(sql).ToList();
@@ -1940,14 +1940,14 @@ namespace Testapi.Controllers
 
         [HttpGet]
         [Route("api/KensakuBtnGet/SPSCITEMMSA")]
-        public List<SPSCITEMMSA> Get_SPSCITEMMSA(string PRODUCT_TYPE,string TODAY)
+        public List<SPSCITEMMSA> Get_SPSCITEMMSA(string PRODUCT_TYPE, string TODAY)
         {
             using (var Dbcontext = new TablesDbContext())
             {
                 PRODUCT_TYPE = Dbcontext.FixedSQLi(PRODUCT_TYPE);
                 TODAY = Dbcontext.FixedSQLi(TODAY);
 
-                string sql = "SELECT * FROM SPSCITEMMSA WHERE DEL_TYPE = '0' AND START_DATE <= '"+TODAY +"' AND STOP_DATE >= '"+ TODAY + "' AND PRODUCT_TYPE ='"+ PRODUCT_TYPE+ "'  and SPEC_ITEM_NO like '10%' order by SPEC_ITEM_NO";
+                string sql = "SELECT * FROM SPSCITEMMSA WHERE DEL_TYPE = '0' AND START_DATE <= '" + TODAY + "' AND STOP_DATE >= '" + TODAY + "' AND PRODUCT_TYPE ='" + PRODUCT_TYPE + "'  and SPEC_ITEM_NO like '10%' order by SPEC_ITEM_NO";
                 var result = Dbcontext.Database.SqlQuery<SPSCITEMMSA>(sql).ToList();
 
                 return result;
@@ -1981,6 +1981,287 @@ namespace Testapi.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("api/KensakuBtnGet/CURRVAL_CPIASEQ")]
+        public List<CUR_TIME> Get_CURTIME_CPIASEQ()
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                string sql = "SELECT CPIASEQ001.NEXTVAL CURRVAL from DUAL";
+                var result = Dbcontext.Database.SqlQuery<CUR_TIME>(sql).ToList();
+
+                return result;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS_ARR")]
+        public List<PPPMSUBMS_ARR> Get_PPPMSUBMS_ARR(string PART_NO)
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                PART_NO = Dbcontext.FixedSQLi(PART_NO);
+
+                string sql = "select distinct arrange_no from pppmsubms where  PART_NO = '" + PART_NO + "'";
+                var result = Dbcontext.Database.SqlQuery<PPPMSUBMS_ARR>(sql).ToList();
+
+                return result;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS")]
+        public List<PPPMSUBMS> Get_PPPMSUBMS(string PART_NO, string ARRANGE_NO)
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                PART_NO = Dbcontext.FixedSQLi(PART_NO);
+                ARRANGE_NO = Dbcontext.FixedSQLi(ARRANGE_NO);
+
+                string sql = "select * from pppmsubms where PART_NO = '" + PART_NO + "' AND ARRANGE_NO = '" + ARRANGE_NO + "'";
+                var result = Dbcontext.Database.SqlQuery<PPPMSUBMS>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS_Unit")]
+        public List<PPPMSUBMS> Get_PPPMSUBMS_Unit(string PART_NO, string ARRANGE_NO, string SUBMS_REV_NO, string SUBMS_SEQ_NO)
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                PART_NO = Dbcontext.FixedSQLi(PART_NO);
+                ARRANGE_NO = Dbcontext.FixedSQLi(ARRANGE_NO);
+                SUBMS_REV_NO = Dbcontext.FixedSQLi(SUBMS_REV_NO);
+                SUBMS_SEQ_NO = Dbcontext.FixedSQLi(SUBMS_SEQ_NO);
+
+                string sql = "select * from pppmsubms where PART_NO = '" + PART_NO + "' AND ARRANGE_NO = '" + ARRANGE_NO + "AND SUBMS_REV_NO = '" + SUBMS_REV_NO + "AND SUBMS_SEQ_NO = '" + SUBMS_SEQ_NO + "'";
+                var result = Dbcontext.Database.SqlQuery<PPPMSUBMS>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS_PartNo_Check")]
+        public List<Count_ENT> Get_PPPMSUBMS_PartNo_Check(string PART_NO, string PART_REV_NO)
+        {
+            using (var Dbcontext = new TablesDbContext())
+            {
+                PART_NO = Dbcontext.FixedSQLi(PART_NO);
+                PART_REV_NO = Dbcontext.FixedSQLi(PART_REV_NO);
+
+                string sql = "select COUNT(*) COUNT from PPPMMS WHERE PART_NO = '" + PART_NO + "'";
+
+                if (PART_REV_NO != "-")
+                {
+                    sql += " AND PART_REV_NO = '" + PART_REV_NO + "' ";
+                }
+                var result = Dbcontext.Database.SqlQuery<Count_ENT>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS_Permission")]
+        public List<PPPMSUBMS>Get_PPPMSUBMS_Permission()
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                string sql = "select * from pppmsubms where cur_type = '1' and app_cur_type = '0' order by PART_NO,BMS_TYPE";
+                var result = DbContext.Database.SqlQuery<PPPMSUBMS>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS_Permission_Count_ENT")]
+        public List<Count_ENT> GET_PPPMSUBMS_Permission_Count_ENT( string PART_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                string sql = "select COUNT(*) COUNT from pppmsubms where part_no = '" + PART_NO + "' and cur_type = '1' and app_cur_type = '0'";
+                var result = DbContext.Database.SqlQuery<Count_ENT>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMPCCOSTMS")]
+        public List<PPPMPCCOSTMS> GET_PPPMPCCOSTMS(string PART_NO,string PLANT_NO,string PART_REV_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                PLANT_NO = DbContext.FixedSQLi(PLANT_NO);
+                PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
+
+                string sql = "select * from PPPMPCCOSTMS where PART_NO ='" + PART_NO + "' and PLANT_NO ='" + PLANT_NO + "' and PART_REV_NO = '" + PART_REV_NO + "'";
+                var result = DbContext.Database.SqlQuery<PPPMPCCOSTMS>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSPCOSTMS")]
+        public List<PPPMSPCOSTMS_PPPMMS> GET_PPPMSPCOSTMS(string PART_NO,string PART_REV_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                PART_REV_NO = DbContext.FixedSQLi(PART_REV_NO);
+
+                string sql = "select * from PPPMSPCOSTMS PMS LEFT JOIN PPPMMS PS on PMS.PART_NO = PS.PART_NO and PMS.PART_REV_NO = PS.PART_REV_NO where PMS.PART_NO = '" + PART_NO + "' and PMS.PART_REV_NO = '" + PART_REV_NO + "'";
+                var result = DbContext.Database.SqlQuery<PPPMSPCOSTMS_PPPMMS>(sql).ToList();
+
+                return result;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSPCOSTMS_Permission")]
+        public List<PPPMSPCOSTMS> GET_PPPMSPCOSTMS_Permission(string PART_NO,string APP_TYPE,string PART_NAME)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                APP_TYPE = DbContext.FixedSQLi(APP_TYPE);
+                PART_NAME = DbContext.FixedSQLi(PART_NAME);
+
+                if (APP_TYPE == "00" || APP_TYPE == "11")
+                {
+                    APP_TYPE = "'00','11'";
+                }
+                string sql = "select * from PPPMSPCOSTMS PMS left join PPPMMS PS on PMS.PART_NO = PS.PART_NO and PMS.PART_REV_NO = PS.PART_REV_NO where ";
+                if(PART_NO != null)
+                {
+                    sql += "PMS.PART_NO like '" + PART_NO + "%' and ";
+                }
+                if(PART_NAME != null)
+                {
+                    sql += "PS.PART_NAME_LOC1 like '" + PART_NAME + "%' and ";
+                }
+                sql += " APP_TYPE in (" + APP_TYPE + ")";
+
+                var result = DbContext.Database.SqlQuery<PPPMSPCOSTMS>(sql).ToList();
+
+                return result;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMCLASSCOEMS")]
+        public List<PPPMCLASSCOEMS> GET_PPPMCLASSCOEMSt()
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                string sql = "select * from PPPMCLASSCOEMS order by PART_CLASS_ENT_NO desc ";
+                var result = DbContext.Database.SqlQuery<PPPMCLASSCOEMS>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSPCOSTMS_Count_ENT")]
+        public List<Count_ENT> GET_PPPMCLASSCOEMSt(string PART_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+
+                string sql = "select COUNT(*) COUNT from PPPMSPCOSTMS where PART_NO = '" + PART_NO + "' and APP_TYPE <>'20'";
+                var result = DbContext.Database.SqlQuery<Count_ENT>(sql).ToList();
+
+                return result;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMMS_REVNO_Count_ENT")]
+        public List<Count_ENT> GET_PPPMS_REVNO_COUNT(string PART_NO ,string USER_ID)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                USER_ID = DbContext.FixedSQLi(USER_ID);
+
+                var RESULT = new List<Count_ENT>();
+                string SQL_USER_ID = "SELECT ROLE_ID FROM CPUMGSSO_USER_ROLE_MST WHERE USER_ID = '"+USER_ID+ "' and ROLE_ID in ('0','2')";
+                var RESULT_USER_ID = DbContext.Database.SqlQuery<CPUMGSSO_USER_ROLE_MST>(SQL_USER_ID).ToList();
+
+                if(RESULT_USER_ID.Count > 0)
+                {
+                    string SQL = "SELECT COUNT(*) COUNT FROM PPPMMS where PART_NO = '" + PART_NO + "' and MODULE_TYPE='1'";
+                    RESULT = DbContext.Database.SqlQuery<Count_ENT>(SQL).ToList();
+                }
+                else
+                {
+                    Count_ENT NULL_COUNT = new Count_ENT();
+                    NULL_COUNT.COUNT = 0;
+
+                    RESULT.Add(NULL_COUNT);
+                }
+
+                return RESULT;
+            }
+        }
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMMS")]
+        public List<PPPMMS> GET_PPPMMS(string PART_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+
+                string sql = "SELECT * FROM PPPMMS WHERE PART_NO = '" + PART_NO + "'";
+                var RESULT = DbContext.Database.SqlQuery<PPPMMS>(sql).ToList();
+
+                return RESULT;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/JNV_JNSHAIN_01")]
+        public List<JNV_JNSHAIN_01> GET_JNV_JNSHAIN_01(string USER_ID)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                USER_ID = DbContext.FixedSQLi(USER_ID);
+
+                string sql = "select * from JNV_JNSHAIN_01 where USER_ID = '"+ USER_ID + "'";
+                var RESULT = DbContext.Database.SqlQuery<JNV_JNSHAIN_01>(sql).ToList();
+
+                return RESULT;
+            }
+        }
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/ENT_CPIAPROCWHO")]
+        public List<Count_ENT> GET_CPIAPROCWHO(string TABLE_NO,string SEQ_NO,string PROC_TYPE)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                TABLE_NO = DbContext.FixedSQLi(TABLE_NO);
+                SEQ_NO = DbContext.FixedSQLi(SEQ_NO);
+                PROC_TYPE = DbContext.FixedSQLi(PROC_TYPE);
+
+                string sql = "select COUNT(*) COUNT from CPIAPROCWHO where TABLE_NO = '"+ TABLE_NO + "' AND SEQ_NO = '"+ SEQ_NO + "' AND PROC_TYPE='"+PROC_TYPE+"'";
+                var RESULT = DbContext.Database.SqlQuery<Count_ENT>(sql).ToList();
+
+                return RESULT;
+            }
+        }
+        // TEST
+        [HttpGet]
+        [Route("api/KensakuBtnGet/Vue_Chat")]
+        public Vue_Chat Get_Vue_Chat()
+        {
+            var Message = new Vue_Chat {
+                Re_Message = "<h1>Hello world</h1>"
+            };
+
+            return Message;
+        }
+        
         //GET api end HERE
         [HttpPost]
         [Route("api/KensakuBtnPost/PPPMMS")]
@@ -2032,6 +2313,57 @@ namespace Testapi.Controllers
         }
 
         [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMMS_INSERT")]
+        public void PPPMMS_INSERT(PPPMMS PM)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMMS";
+                string Ins_sql_name = "";
+                string Ins_sql_value = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = PM.GetType().GetProperties();
+                foreach (var item in PM.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(PM) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(PM).ToString());
+                    }
+                }
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null")
+                    {
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "('" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += ",'" + list_value[index] + "'";
+                        }
+                    }
+                }
+                Ins_sql_name += ") ";
+                Ins_sql_value += ")";
+                // INSERT　新規登録コマンド
+                string SQL_INSERT = "INSERT INTO " + Table_Name + " " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                //  実行
+                DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
+            }
+        }
+
+        [HttpPost]
         [Route("api/KensakuBtnPost/NRPMA")]
         // POST api/<controller>
         public void Post_NRPMA(NRPMA NA)
@@ -2058,7 +2390,7 @@ namespace Testapi.Controllers
                 foreach (var item in list_value)
                 {
                     index += 1;
-                    if (item != "null" && list_name[index] != "PART_NO" && list_name[index] != "REV_PART_NO")
+                    if (item != "null" && list_name[index] != "PART_NO" )
                     {
                         if (Set_sql == "")
                         {
@@ -2072,7 +2404,7 @@ namespace Testapi.Controllers
 
                 }
 
-                string sql = "UPDATE NRPMA " + Set_sql + " where PART_NO = '" + DbContext.FixedSQLi(NA.PART_NO) + "' and REV_PART_NO = '" + DbContext.FixedSQLi(NA.REV_PART_NO) + "'";
+                string sql = "UPDATE NRPMA " + Set_sql + " where PART_NO = '" + DbContext.FixedSQLi(NA.PART_NO) + "'";
 
                 if (Set_sql != "")
                 {
@@ -2127,6 +2459,56 @@ namespace Testapi.Controllers
                 {
                     DbContext.Database.ExecuteSqlCommand(sql);
                 }
+            }
+        }
+        [HttpPost]
+        [Route("api/KensakuBtnPost/NRPMHIS_INSERT")]
+        public void NRPMHIS_INSERT(NRPMHIS NS)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "NRPMHIS";
+                string Ins_sql_name = "";
+                string Ins_sql_value = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = NS.GetType().GetProperties();
+                foreach (var item in NS.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(NS) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(NS).ToString());
+                    }
+                }
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null")
+                    {
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "('" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += ",'" + list_value[index] + "'";
+                        }
+                    }
+                }
+                Ins_sql_name += ") ";
+                Ins_sql_value += ")";
+                // INSERT　新規登録コマンド
+                string SQL_INSERT = "INSERT INTO " + Table_Name + " " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                //  実行
+                DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
             }
         }
         [HttpPost]
@@ -2758,17 +3140,17 @@ namespace Testapi.Controllers
         [Route("api/KensakuBtnPost/ZKMS")]
         public void POST_ZKMS(ZKMS ZK)
         {
-            using (var DbContext = new TablesDbContext()){
+            using (var DbContext = new TablesDbContext()) {
                 //　更新したいデータは既に登録しているかを確認
                 string SQL_Check_ENT = "SELECT COUNT(*) COUNT FROM ZKMS WHERE SOKO_CODE = '" + DbContext.FixedSQLi(ZK.SOKO_CODE)
                                      + "' AND PART_NO = '" + DbContext.FixedSQLi(ZK.PART_NO) + "'";
                 var result_Check_ENT = DbContext.Database.SqlQuery<Count_ENT>(SQL_Check_ENT).ToList();
-                
+
                 //  PK_ID　SYDBGRIDテーブルのプライマリーキー名のリスト
                 List<string> PK_ID = new List<string>() { "SOKO_CODE", "PART_NO", "EZ_STOCK_FLAG", "MAX_VALUE_SET_TYPE", "MIN_SAFETY_SET_TYPE" };
                 string Set_sql = "";
                 string Ins_sql_name = "";
-                string Ins_sql_value= "";
+                string Ins_sql_value = "";
                 string Where_sql = "";
                 var list_name = new List<string>() { };
                 var list_value = new List<string>() { };
@@ -2831,17 +3213,17 @@ namespace Testapi.Controllers
                     foreach (var item in list_name)
                     {
                         index += 1;
-                        if(list_value[index] != "null")
+                        if (list_value[index] != "null")
                         {
                             if (Ins_sql_name == "")
                             {
                                 Ins_sql_name += "(" + item;
-                                Ins_sql_value += "('" + list_value[index] +"'";
+                                Ins_sql_value += "('" + list_value[index] + "'";
                             }
                             else
                             {
                                 Ins_sql_name += "," + item;
-                                Ins_sql_value += ",'" + list_value[index] +"'";
+                                Ins_sql_value += ",'" + list_value[index] + "'";
                             }
                         }
                     }
@@ -2852,10 +3234,10 @@ namespace Testapi.Controllers
                     //  実行
                     DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
                 }
-                
+
             }
         }
-        
+
         [HttpPost]
         [Route("api/KensakuBtnPost/SPSCCONDIDMS_UPDATE")]
         public void POST_SPSCCONDIDM_UPDATE(SPSCCONDIDM_UPDATE SP_UP)
@@ -2914,25 +3296,25 @@ namespace Testapi.Controllers
                         if (PPPMM_NAME == "")
                         {
                             PPPMM_NAME += item;
-                            PPPMM_VALUE += item != "CONDITION_ID"? "'"+ list_value[index] + "'": "'" + CONDITION_ID + "'";
+                            PPPMM_VALUE += item != "CONDITION_ID" ? "'" + list_value[index] + "'" : "'" + CONDITION_ID + "'";
                         }
                         else
                         {
                             PPPMM_NAME += "," + item;
-                            PPPMM_VALUE += item != "CONDITION_ID" ? ",'" + list_value[index] + "'"  : ",'" + CONDITION_ID + "'" ;
+                            PPPMM_VALUE += item != "CONDITION_ID" ? ",'" + list_value[index] + "'" : ",'" + CONDITION_ID + "'";
                         }
                     }
-                    if(SPS_List.Contains(item))
+                    if (SPS_List.Contains(item))
                     {
                         if (SPS_NAME == "")
                         {
                             SPS_NAME += item;
-                            SPS_VALUE += item != "CONDITION_ID" ? "'" + list_value[index] + "'" : "'" + CONDITION_ID +"'";
+                            SPS_VALUE += item != "CONDITION_ID" ? "'" + list_value[index] + "'" : "'" + CONDITION_ID + "'";
                         }
                         else
                         {
                             SPS_NAME += "," + item;
-                            SPS_VALUE += item != "CONDITION_ID" ? ",'" + list_value[index] + "'"  : ",'" + CONDITION_ID + "'";
+                            SPS_VALUE += item != "CONDITION_ID" ? ",'" + list_value[index] + "'" : ",'" + CONDITION_ID + "'";
                         }
                     }
                 }
@@ -2979,9 +3361,9 @@ namespace Testapi.Controllers
                     index += 1;
                     if (list_value[index] != "null" && PPPMMAINTMS_PARAMETA.Contains(item))
                     {
-                        if ( PPPMM_SET == "")
+                        if (PPPMM_SET == "")
                         {
-                            PPPMM_SET += item +" = '" + list_value[index] + "'";
+                            PPPMM_SET += item + " = '" + list_value[index] + "'";
                         }
                         else
                         {
@@ -3002,7 +3384,7 @@ namespace Testapi.Controllers
                 }
 
                 //  PPPMMAINTMS に新しいデータを追加
-                string sql = "UPDATE PPPMMAINTMS  SET  " + PPPMM_SET + " WHERE " + PPPMM_WHERE  ;
+                string sql = "UPDATE PPPMMAINTMS  SET  " + PPPMM_SET + " WHERE " + PPPMM_WHERE;
 
                 DbContext.Database.ExecuteSqlCommand(sql);
             }
@@ -3018,6 +3400,7 @@ namespace Testapi.Controllers
                 DbContext.Database.ExecuteSqlCommand(sql);
             }
         }
+        
         [HttpPost]
         [Route("api/KensakuBtnPost/PPPMMAINTCONDMS_UPDATE_NEW")]
         public void PPPMMAINTCONDMS_DEL(PPPMMAINTCONDMS_UPDATE PPM)
@@ -3029,17 +3412,17 @@ namespace Testapi.Controllers
                 string Find_COND_ID_SQL = "select CONDITION_ID from spsccondidms where PRODUCT_TYPE ='" + PPM.PRODUCT_TYPE + "' AND COND_SPEC_ITEM_NO = '" + PPM.COND_SPEC_ITEM_NO +
                                         "' and COND_STAT ='" + PPM.COND_STAT + "' and COND_CODE = '" + PPM.COND_CODE + "'";
                 var COND_ID_LIST = DbContext.Database.SqlQuery<COND_ID>(Find_COND_ID_SQL).ToList();
-                string COUNT_PPPMMA = "select COUNT(*) COUNT FROM PPPMMAINTCONDMS WHERE PART_NO = '" + PPM.PART_NO + "' and PART_REV_NO = '" + PPM.PART_REV_NO + "' and PART_LOCATION ='"+PPM.PART_LOCATION+ "' and COND_PAT_NO = '" + PPM.COND_PAT_NO+"'";
+                string COUNT_PPPMMA = "select COUNT(*) COUNT FROM PPPMMAINTCONDMS WHERE PART_NO = '" + PPM.PART_NO + "' and PART_REV_NO = '" + PPM.PART_REV_NO + "' and PART_LOCATION ='" + PPM.PART_LOCATION + "' and COND_PAT_NO = '" + PPM.COND_PAT_NO + "'";
                 var COUNT_ENT = DbContext.Database.SqlQuery<Count_ENT>(COUNT_PPPMMA).ToList();
 
                 //  CONDITION_IDが既に登録している場合ならそのまま　PPPMMAINTCONDM　新しいデータを登録する
                 if (COND_ID_LIST.Count > 0)
-                {  
+                {
                     //  UPDATE
-                    if(Int32.Parse(PPM.COND_SEQ_NO) +1 <= COUNT_ENT[0].COUNT)
+                    if (Int32.Parse(PPM.COND_SEQ_NO) + 1 <= COUNT_ENT[0].COUNT)
                     {
-                        string UPDATE_PPPMMA = "UPDATE PPPMMAINTCONDMS SET CONDITION_ID = '"+ COND_ID_LIST[0].CONDITION_ID + "', UPD_WHO = '" +PPM.UPD_WHO + "',UPD_WHEN = '" + PPM.UPD_WHEN +"' "
-                                             + "WHERE PART_NO = '" + PPM.PART_NO + "' and PART_REV_NO = '" + PPM.PART_REV_NO + "' and PART_LOCATION ='" + PPM.PART_LOCATION + "' and COND_PAT_NO = '" + PPM.COND_PAT_NO + "' and COND_SEQ_NO = '"+ PPM.COND_SEQ_NO + "'";
+                        string UPDATE_PPPMMA = "UPDATE PPPMMAINTCONDMS SET CONDITION_ID = '" + COND_ID_LIST[0].CONDITION_ID + "', UPD_WHO = '" + PPM.UPD_WHO + "',UPD_WHEN = '" + PPM.UPD_WHEN + "' "
+                                             + "WHERE PART_NO = '" + PPM.PART_NO + "' and PART_REV_NO = '" + PPM.PART_REV_NO + "' and PART_LOCATION ='" + PPM.PART_LOCATION + "' and COND_PAT_NO = '" + PPM.COND_PAT_NO + "' and COND_SEQ_NO = '" + PPM.COND_SEQ_NO + "'";
                         DbContext.Database.ExecuteSqlCommand(UPDATE_PPPMMA);
                     }
                     //  INSERT
@@ -3050,19 +3433,20 @@ namespace Testapi.Controllers
                              + "','" + PPM.UPD_WHEN + "','" + PPM.UPD_WHO + "','" + PPM.UPD_WHEN + "')";
                         DbContext.Database.ExecuteSqlCommand(INSERT_PPPMMA);
                     }
-                    
+
                 }
                 //  もし、CONDITION_ID が登録していなかった場合　spsccondidms　に新しいデータを登録する
                 else
                 {
                     string CONDITION_ID = "";
+                    //TEST用
                     string GET_New_CONDITION_ID_SQL = "SELECT  SPSEQ001.NEXTVAL  FROM DUAL";
                     //string GET_New_CONDITION_ID_SQL = "select MAX(CONDITION_ID) +1 NEXTVAL from SPSCCONDIDMS where CONDITION_TYPE ='0' ";
 
                     var result_New_CONDITION_ID = DbContext.Database.SqlQuery<NEW_CONDITION_ID>(GET_New_CONDITION_ID_SQL).ToList();
                     CONDITION_ID = (Int32.Parse(result_New_CONDITION_ID[0].NEXTVAL) - PPM.CUR_TIME).ToString();
 
-                    GET_New_CONDITION_ID_SQL = "select MAX(CONDITION_ID) + "+ CONDITION_ID + " NEXTVAL from SPSCCONDIDMS where CONDITION_TYPE ='0' ";
+                    GET_New_CONDITION_ID_SQL = "select MAX(CONDITION_ID) + " + CONDITION_ID + " NEXTVAL from SPSCCONDIDMS where CONDITION_TYPE ='0' ";
                     result_New_CONDITION_ID = DbContext.Database.SqlQuery<NEW_CONDITION_ID>(GET_New_CONDITION_ID_SQL).ToList();
                     CONDITION_ID = result_New_CONDITION_ID[0].NEXTVAL;
 
@@ -3105,10 +3489,10 @@ namespace Testapi.Controllers
                     }
                     string sql_IN_SPS = "INSERT INTO SPSCCONDIDMS (" + SPS_NAME + ") VALUES (" + SPS_VALUE + ")";
 
-                      DbContext.Database.ExecuteSqlCommand(sql_IN_SPS);
+                    DbContext.Database.ExecuteSqlCommand(sql_IN_SPS);
 
                     //  UPDATE
-                    if (Int32.Parse(PPM.COND_SEQ_NO) +1  <= COUNT_ENT[0].COUNT)
+                    if (Int32.Parse(PPM.COND_SEQ_NO) + 1 <= COUNT_ENT[0].COUNT)
                     {
                         string UPDATE_PPPMMA = "UPDATE PPPMMAINTCONDMS SET CONDITION_ID = '" + CONDITION_ID + "', UPD_WHO = '" + PPM.UPD_WHO + "',UPD_WHEN = '" + PPM.UPD_WHEN + "' "
                                              + "WHERE PART_NO = '" + PPM.PART_NO + "' and PART_REV_NO = '" + PPM.PART_REV_NO + "' and PART_LOCATION ='" + PPM.PART_LOCATION + "' and COND_PAT_NO = '" + PPM.COND_PAT_NO + "' and COND_SEQ_NO = '" + PPM.COND_SEQ_NO + "'";
@@ -3179,8 +3563,497 @@ namespace Testapi.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMSUBMS_UPDATE")]
+        public void PPPMSUBMS_UPDATE(PPPMSUBMS PS)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMSUBMS";
+
+                List<string> PK_list = new List<string>() { "PART_NO", "ARRANGE_NO", "SUBMS_REV_NO", "SUBMS_SEQ_NO" };
+
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var SET = "";
+                var WHERE = "";
+                var typeSP_IN = PS.GetType().GetProperties();
+                foreach (var item in PS.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(PS) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(PS).ToString());
+                    }
+                }
+
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null" && !PK_list.Contains(item))
+                    {
+                        if (SET == "")
+                        {
+                            SET += item + " = '" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            SET += " , " + item + " = '" + list_value[index] + "'";
+                        }
+                    }
+                    if (PK_list.Contains(item))
+                    {
+                        if (WHERE == "")
+                        {
+                            WHERE += item + " = '" + list_value[index] + "' ";
+                        }
+                        else
+                        {
+                            WHERE += " AND " + item + " = '" + list_value[index] + "' ";
+                        }
+                    }
+                }
+
+                //  PPPMMAINTMS に新しいデータを追加
+                string sql = "UPDATE " + Table_Name + "  SET  " + SET + " WHERE " + WHERE;
+
+                DbContext.Database.ExecuteSqlCommand(sql);
+            }
+        }
+
+
+
+        [HttpGet]
+        [Route("api/KensakuBtnGet/PPPMSUBMS_SEQ_NEW")]
+        public List<NEW_SEQ_NO> Get_PPPMSUBMS_SEQ_NEW(string PART_NO, string ARRANGE_NO)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                PART_NO = DbContext.FixedSQLi(PART_NO);
+                ARRANGE_NO = DbContext.FixedSQLi(ARRANGE_NO);
+
+                string sql = "select MAX(SUBMS_SEQ_NO) + 1 SUBMS_SEQ_NO  from pppmsubms where PART_NO = '" + PART_NO + "' and ARRANGE_NO ='" + ARRANGE_NO + "' and SUBMS_REV_NO ='000'";
+                var result = DbContext.Database.SqlQuery<NEW_SEQ_NO>(sql).ToList();
+
+                return result;
+
+            }
+        } 
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMSUBMS_INSERT")]
+        public void PPPMSUBMS_INSERT(PPPMSUBMS PS)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMSUBMS";
+                //  PK_ID　SYDBGRIDテーブルのプライマリーキー名のリスト
+                string Ins_sql_name = "";
+                string Ins_sql_value = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = PS.GetType().GetProperties();
+                foreach (var item in PS.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(PS) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(PS).ToString());
+                    }
+                }
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null")
+                    {
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "('" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += ",'" + list_value[index] + "'";
+                        }
+                    }
+                }
+                Ins_sql_name += ") ";
+                Ins_sql_value += ")";
+                // INSERT　新規登録コマンド
+                string SQL_INSERT = "INSERT INTO " + Table_Name + " " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                //  実行
+                DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMSUBMS_PERMISSION")]
+        public void PPPMSUBMS_PERMISSION(PPPMSUBMS PS)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                string sql = "UPDATE pppmsubms SET APP_CUR_TYPE = '1',APP_COMMENT ='"+ PS.APP_COMMENT +"' WHERE PART_NO = '" + PS.PART_NO + "' AND ARRANGE_NO = '" + PS.ARRANGE_NO + "' AND SUBMS_REV_NO = '" + PS.SUBMS_REV_NO + "' AND SUBMS_SEQ_NO = '" + PS.SUBMS_SEQ_NO + "'";
+                string sql_old = "UPDATE pppmsubms SET APP_CUR_TYPE = '0',APP_COMMENT ='" + PS.APP_COMMENT + "' WHERE PART_NO = '" + PS.PART_NO + "' AND ARRANGE_NO = '" + PS.ARRANGE_NO + "' AND SUBMS_REV_NO = '" + PS.OLD_SUBMS_REV_NO + "' AND SUBMS_SEQ_NO = '" + PS.SUBMS_SEQ_NO + "'";
+
+                DbContext.Database.ExecuteSqlCommand(sql);
+                if(PS.OLD_SUBMS_REV_NO != "NULL")
+                {
+                    DbContext.Database.ExecuteSqlCommand(sql_old);
+                }
+            }
+        }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMPCCOSTMS_INSERT")]
+        public void PPPMPCCOSTMS_INSERT(PPPMPCCOSTMS PC)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMPCCOSTMS";
+                string Ins_sql_name = "";
+                string Ins_sql_value = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = PC.GetType().GetProperties();
+                foreach (var item in PC.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(PC) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(PC).ToString());
+                    }
+                }
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null")
+                    {
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "('" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += ",'" + list_value[index] + "'";
+                        }
+                    }
+                }
+                Ins_sql_name += ") ";
+                Ins_sql_value += ")";
+                // INSERT　新規登録コマンド
+                string SQL_INSERT = "INSERT INTO " + Table_Name + " " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                //  実行
+                DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMPCCOSTMS_UPDATE")]
+        public void PPPMPCCOSTMS_UPDATE(PPPMPCCOSTMS PC)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMPCCOSTMS";
+
+                List<string> PK_list = new List<string>() { "PLANT_NO", "PART_NO", "PART_REV_NO", "COST_REV_NO" };
+
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var SET = "";
+                var WHERE = "";
+                foreach (var item in PC.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(PC) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(PC).ToString());
+                    }
+                }
+
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null" && !PK_list.Contains(item))
+                    {
+                        if (SET == "")
+                        {
+                            SET += item + " = '" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            SET += " , " + item + " = '" + list_value[index] + "'";
+                        }
+                    }
+                    if (PK_list.Contains(item))
+                    {
+                        if (WHERE == "")
+                        {
+                            WHERE += item + " = '" + list_value[index] + "' ";
+                        }
+                        else
+                        {
+                            WHERE += " AND " + item + " = '" + list_value[index] + "' ";
+                        }
+                    }
+                }
+
+                //  PPPMMAINTMS に新しいデータを追加
+                string sql = "UPDATE " + Table_Name + "  SET  " + SET + " WHERE " + WHERE;
+
+                DbContext.Database.ExecuteSqlCommand(sql);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMSPCOSTMS_INSERT")]
+        public void PPPMSPCOSTMS_INSERT(PPPMSPCOSTMS SP)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMSPCOSTMS";
+                string Ins_sql_name = "";
+                string Ins_sql_value = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = SP.GetType().GetProperties();
+                foreach (var item in SP.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(SP) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(SP).ToString());
+                    }
+                }
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null")
+                    {
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "('" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += ",'" + list_value[index] + "'";
+                        }
+                    }
+                }
+                Ins_sql_name += ") ";
+                Ins_sql_value += ")";
+                // INSERT　新規登録コマンド
+                string SQL_INSERT = "INSERT INTO " + Table_Name + " " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                //  実行
+                DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/PPPMSPCOSTMS_UPDATE")]
+        public void PPPMSPCOSTMS_UPDATE(PPPMSPCOSTMS SP)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "PPPMSPCOSTMS";
+
+                List<string> PK_list = new List<string>() { "PART_NO", "PART_REV_NO", "COST_REV_NO" };
+
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var SET = "";
+                var WHERE = "";
+                foreach (var item in SP.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(SP) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(SP).ToString());
+                    }
+                }
+
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null" && !PK_list.Contains(item))
+                    {
+                        if (SET == "")
+                        {
+                            SET += item + " = '" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            SET += " , " + item + " = '" + list_value[index] + "'";
+                        }
+                    }
+                    if (PK_list.Contains(item))
+                    {
+                        if (WHERE == "")
+                        {
+                            WHERE += item + " = '" + list_value[index] + "' ";
+                        }
+                        else
+                        {
+                            WHERE += " AND " + item + " = '" + list_value[index] + "' ";
+                        }
+                    }
+                }
+
+                //  PPPMMAINTMS に新しいデータを追加
+                string sql = "UPDATE " + Table_Name + "  SET  " + SET + " WHERE " + WHERE;
+
+                DbContext.Database.ExecuteSqlCommand(sql);
+            }
+        }
+        [HttpPost]
+        [Route("api/KensakuBtnPost/CPIAPROCWHO_INSERT")]
+        public void CPIAPROCWHO_INSERT(CPIAPROCWHO CPI)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "CPIAPROCWHO";
+                string Ins_sql_name = "";
+                string Ins_sql_value = "";
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var typeKT = CPI.GetType().GetProperties();
+                foreach (var item in CPI.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(CPI) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(CPI).ToString());
+                    }
+                }
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null")
+                    {
+                        if (Ins_sql_name == "")
+                        {
+                            Ins_sql_name += "(" + item;
+                            Ins_sql_value += "('" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            Ins_sql_name += "," + item;
+                            Ins_sql_value += ",'" + list_value[index] + "'";
+                        }
+                    }
+                }
+                Ins_sql_name += ") ";
+                Ins_sql_value += ")";
+                // INSERT　新規登録コマンド
+                string SQL_INSERT = "INSERT INTO " + Table_Name + " " + Ins_sql_name + "VALUES " + Ins_sql_value;
+                //  実行
+                DbContext.Database.ExecuteSqlCommand(SQL_INSERT);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/KensakuBtnPost/CPIAPROCWHO_UPDATE")]
+        public void CPIAPROCWHO_UPDATE(CPIAPROCWHO CPI)
+        {
+            using (var DbContext = new TablesDbContext())
+            {
+                var Table_Name = "CPIAPROCWHO";
+
+                List<string> PK_list = new List<string>() { "TABLE_NO", "SEQ_NO", "PROC_TYPE" };
+
+                var list_name = new List<string>() { };
+                var list_value = new List<string>() { };
+                var SET = "";
+                var WHERE = "";
+                foreach (var item in CPI.GetType().GetProperties())
+                {
+                    list_name.Add(item.Name);
+                    if (item.GetValue(CPI) == null)
+                    {
+                        list_value.Add("null");
+                    }
+                    else
+                    {
+                        list_value.Add(item.GetValue(CPI).ToString());
+                    }
+                }
+
+                int index = -1;
+                foreach (var item in list_name)
+                {
+                    index += 1;
+                    if (list_value[index] != "null" && !PK_list.Contains(item))
+                    {
+                        if (SET == "")
+                        {
+                            SET += item + " = '" + list_value[index] + "'";
+                        }
+                        else
+                        {
+                            SET += " , " + item + " = '" + list_value[index] + "'";
+                        }
+                    }
+                    if (PK_list.Contains(item))
+                    {
+                        if (WHERE == "")
+                        {
+                            WHERE += item + " = '" + list_value[index] + "' ";
+                        }
+                        else
+                        {
+                            WHERE += " AND " + item + " = '" + list_value[index] + "' ";
+                        }
+                    }
+                }
+
+                //  PPPMMAINTMS に新しいデータを追加
+                string sql = "UPDATE " + Table_Name + "  SET  " + SET + " WHERE " + WHERE;
+
+                DbContext.Database.ExecuteSqlCommand(sql);
+            }
+        }
         public void Put(int id, [FromBody]string value)
         {
+
         }
 
         // DELETE api/<controller>/5

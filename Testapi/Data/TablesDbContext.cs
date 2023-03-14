@@ -4,13 +4,15 @@ using System.Linq;
 using System.Web;
 using System.Data.Entity;
 using System.Configuration;
+using Npgsql;
 
 namespace Testapi.Data
 {
     public class TablesDbContext :DbContext
     {
         public TablesDbContext()
-        : base("name=oraFj01x")
+        : base("name=posFj01x")
+        //: base("name=oraFj01x")
         {
             Database.SetInitializer<TablesDbContext>(null);
         }
