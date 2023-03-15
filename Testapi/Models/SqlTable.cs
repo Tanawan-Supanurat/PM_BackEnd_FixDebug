@@ -562,6 +562,26 @@ namespace Testapi.Models
             //Union_SQL += MS_TABLE == '5' ?
             return Union_SQL;
         }
+
+        public static string GetSQLUnionPostgres(string MS_TABLE, string TABLE_NAME, string PLANT_NO)
+        {
+            string Union_SQL = "";
+            //共用マスター
+            Union_SQL += MS_TABLE == "1" ? " select cast(CM_KOUNO as  character varying) CM_KOUNO,CM_CODE,CM_CODE_SETUMEI,null as FIELD_NAME from cmmsb where CM_KOUNO in (select MS_ITEM_NO from PPPMTABLEHDRMNG" +
+                                           " where table_name = '" + TABLE_NAME + "' and MS_TABLE in ('1'))  " : "";
+            //注文コードマスター
+            Union_SQL += MS_TABLE == "2" ? " select cast(CH_KOUNO as  character varying) CM_KOUNO,CH_CODE CM_CODE ,CH_CODE_SETUMEI_1 CM_CODE_SETUMEI,null as FIELD_NAME from CHCDMS  where CH_KOUNO in " +
+                                           " (select MS_ITEM_NO from PPPMTABLEHDRMNG where table_name = '" + TABLE_NAME + "' and MS_TABLE in ('2')) " : "";
+            //単位読替マスタ
+            Union_SQL += MS_TABLE == "3" && TABLE_NAME != "ZKMS" ? " select cast(TANTO_KUBUN  as  character varying) CM_KOUNO , TANTO_CODE CM_CODE,USER_ID CM_CODE_SETUMEI,null as FIELD_NAME from CMTANTOMS where TANTO_KUBUN in " +
+                                                                 " (select MS_ITEM_NO from PPPMTABLEHDRMNG where PLANT_NO = '" + PLANT_NO + "' and table_name = '" + TABLE_NAME + "' and MS_TABLE in ('3')) " : "";
+
+            //工程コードマスタ
+            //Union_SQL += MS_TABLE == '4' ?
+            //Union_SQL += MS_TABLE == '5' ?
+            return Union_SQL;
+        }
+
         public static string getSQLUnion(string TABLE_NAME, string CC_CODE, string WC_CODE, string SG_CODE)
         {
             string Extra_Union = "";

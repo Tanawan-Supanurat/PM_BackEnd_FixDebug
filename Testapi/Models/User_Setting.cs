@@ -9,7 +9,7 @@ namespace Testapi.Models
     {
         public string FIELD_NAME { get; set; }
         public string FIELD_NAME_J { get; set; }
-        public string SEQ_NO { get; set; }
+        public int SEQ_NO { get; set; }
         public string COL_VISIBLE { get; set; }
     }
 }

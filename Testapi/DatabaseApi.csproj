@@ -246,6 +246,7 @@
     <Compile Include="Models\NRPMA.cs" />
     <Compile Include="Models\NRPMB.cs" />
     <Compile Include="Models\NRPMHIS.cs" />
+    <Compile Include="Models\OracleToPostgres.cs" />
     <Compile Include="Models\Pic.cs" />
     <Compile Include="Models\PMKensaku.cs" />
     <Compile Include="Models\POST_PPPMMS.cs" />

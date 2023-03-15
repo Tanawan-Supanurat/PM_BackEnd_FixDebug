@@ -10,7 +10,7 @@ namespace Testapi.Models
         public string FIELD_NAME_LOC1 { get; set; }
         public string FIELD_NAME { get; set; }
         public string AUTH_TYPE { get; set; }
-        public string FIELD_SEQ_NO { get; set; }
+        public int FIELD_SEQ_NO { get; set; }
         public string ALIGNMENT{ get; set; }
         public string EDIT_ENABLE{ get; set; }
         public string CELL_LENGTH{ get; set; }

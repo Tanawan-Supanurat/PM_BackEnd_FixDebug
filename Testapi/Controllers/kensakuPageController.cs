@@ -13,6 +13,12 @@ namespace Testapi.Controllers
 {
     public class kensakuPageController : ApiController
     {
+        public static bool CheckDatabase()
+        {
+            //bool IsOracle = true;
+            bool IsOracle = false;
+            return IsOracle;
+        }
 
         [HttpGet]
         [Route("api/KensakuBtnGet")]
@@ -396,6 +402,8 @@ namespace Testapi.Controllers
             {
                 using (var DbContext = new TablesDbContext())
                 {
+                    var IsOracle = CheckDatabase();
+
                     Edit_PART_NO = DbContext.FixedSQLi(Edit_PART_NO);
                     Edit_REV_NO = DbContext.FixedSQLi(Edit_REV_NO);
                     USER_ID = DbContext.FixedSQLi(USER_ID);
@@ -431,6 +439,11 @@ namespace Testapi.Controllers
 
                     string sql = "SELECT COLUMN_NAME FROM all_tab_cols where TABLE_NAME = 'PPPMMS' and DATA_TYPE != 'NUMBER' order by INTERNAL_COLUMN_ID";
                     string sql_num = "SELECT COLUMN_NAME FROM all_tab_cols where TABLE_NAME = 'PPPMMS' and DATA_TYPE = 'NUMBER' order by INTERNAL_COLUMN_ID";
+                    if(!IsOracle)
+                    {
+                        sql = OracleToPostgres.ChangeToPostgresSQL(sql,true);
+                        sql_num = OracleToPostgres.ChangeToPostgresSQL(sql_num, true);
+                    }
                     string In_Con = "";
                     string In_Con_Num = "";
                     string In_Con_Num_where = "";
@@ -468,60 +481,103 @@ namespace Testapi.Controllers
                     sql_2 += " ) PMTH ";
                     sql_2 += " full join PPPMTABLEhdrMNG PMHD on PMHD.TABLE_NAME = PMTH.TABLE_NAME and PMHD.FIELD_NAME = PMTH.FIELD_NAME";
 
-                    sql_3 = sql_2;
-
-                    sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMMS where PART_NO =  '" + Edit_PART_NO;
-                    sql_2 += "' and PART_REV_NO = " + Edit_REV_NO + ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
-                    sql_2 += " IN(" + In_Con + " ))) ";
-                    sql_2 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
-
-                    sql_2 += " left join (";
-
                     string UNION_SQL = "";
 
-                    foreach (var item in reusult_ms_table_pppmms)
+                    if (!IsOracle)
                     {
-                        if (UNION_SQL == "")
+                        sql_2 = OracleToPostgres.ChangeToPostgresSQL(sql_2, false);
+                        sql_2 += "  LEFT JOIN ( SELECT UPPER ((json_each_text(row_to_json(t))).key) FIELD_NAME ,(json_each_text(row_to_json(t))).value FIELD_VALUE  FROM PPPMMS t where";
+                        sql_2 += "  PART_NO='"+ Edit_PART_NO + "' and part_rev_no = '"+ Edit_REV_NO+"' ";
+                        sql_2 += " ) NEWTABLE  on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME  ";
+
+                        sql_2 += " left join (";
+
+
+                        foreach (var item in reusult_ms_table_pppmms)
                         {
-                            UNION_SQL += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMMS", "1");
-                        }
-                        else
-                        {
-                            string Ckvoid = "";
-                            Ckvoid += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMMS", "1");
-                            if (Ckvoid != "")
+                            if (UNION_SQL == "")
                             {
-                                UNION_SQL += "UNION" + Ckvoid;
+                                UNION_SQL += SqlTable.GetSQLUnionPostgres(item.MS_TABLE_Find, "PPPMMS", "1");
+                            }
+                            else
+                            {
+                                string Ckvoid = "";
+                                Ckvoid += SqlTable.GetSQLUnionPostgres(item.MS_TABLE_Find, "PPPMMS", "1");
+                                if (Ckvoid != "")
+                                {
+                                    UNION_SQL += "UNION" + Ckvoid;
+                                }
                             }
                         }
+                        sql_2 += UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+
+                        sql_2 += " where PMTH.TABLE_NAME = 'PPPMMS' ";
+                        sql_2 += " and AUTH_TYPE <> '0' ";
+                        sql_2 = CheckIndiviSet ?
+                            "select TO_NUMBER(SYD.SEQ_NO) FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMMS' and USER_ID = '" + USER_ID +
+                            "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
+                            : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+
+                        var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
+                        return result_2;
                     }
-                    sql_2 += UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+                    else
+                    {
+                        sql_3 = sql_2;
 
-                    sql_2 += " where PMTH.TABLE_NAME = 'PPPMMS' ";
-                    sql_2 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")";
-                    sql_2 = CheckIndiviSet ?
-                        "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMMS' and USER_ID = '" + USER_ID +
-                        "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
-                        : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+                        sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMMS where PART_NO =  '" + Edit_PART_NO;
+                        sql_2 += "' and PART_REV_NO = " + Edit_REV_NO + ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
+                        sql_2 += " IN(" + In_Con + " ))) ";
+                        sql_2 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
 
-                    sql_3 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMMS where PART_NO =  '" + Edit_PART_NO;
-                    sql_3 += "' and PART_REV_NO = " + Edit_REV_NO + ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
-                    sql_3 += " IN(" + In_Con_Num + " ))) ";
-                    sql_3 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
+                        sql_2 += " left join (";
 
-                    sql_3 += " left join (" + UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
 
-                    sql_3 += " where PMTH.TABLE_NAME = 'PPPMMS' ";
-                    sql_3 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME IN (" + In_Con_Num_where + ")";
-                    sql_3 = CheckIndiviSet ?
-                        "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMMS' and USER_ID = '" + USER_ID +
-                        "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
-                        : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
-                    var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
-                    var result_3 = DbContext.Database.SqlQuery<EditInfo>(sql_3).ToList();
-                    result_2.AddRange(result_3);
-                    result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
-                    return result_2;
+                        foreach (var item in reusult_ms_table_pppmms)
+                        {
+                            if (UNION_SQL == "")
+                            {
+                                UNION_SQL += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMMS", "1");
+                            }
+                            else
+                            {
+                                string Ckvoid = "";
+                                Ckvoid += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMMS", "1");
+                                if (Ckvoid != "")
+                                {
+                                    UNION_SQL += "UNION" + Ckvoid;
+                                }
+                            }
+                        }
+                        sql_2 += UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+
+                        sql_2 += " where PMTH.TABLE_NAME = 'PPPMMS' ";
+                        sql_2 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")";
+                        sql_2 = CheckIndiviSet ?
+                            "select TO_NUMBER(SYD.SEQ_NO) FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMMS' and USER_ID = '" + USER_ID +
+                            "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
+                            : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+
+                        sql_3 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMMS where PART_NO =  '" + Edit_PART_NO;
+                        sql_3 += "' and PART_REV_NO = " + Edit_REV_NO + ") UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
+                        sql_3 += " IN(" + In_Con_Num + " ))) ";
+                        sql_3 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
+
+                        sql_3 += " left join (" + UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+
+                        sql_3 += " where PMTH.TABLE_NAME = 'PPPMMS' ";
+                        sql_3 += " and AUTH_TYPE <> '0' and PMHD.FIELD_NAME IN (" + In_Con_Num_where + ")";
+                        sql_3 = CheckIndiviSet ?
+                            "select TO_NUMBER(SYD.SEQ_NO) FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMMS' and USER_ID = '" + USER_ID +
+                            "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
+                            : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
+                        var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
+                        var result_3 = DbContext.Database.SqlQuery<EditInfo>(sql_3).ToList();
+                        result_2.AddRange(result_3);
+                        result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
+
+                        return result_2;
+                    }
                 }
             }
             return null;
@@ -532,6 +588,8 @@ namespace Testapi.Controllers
         {
             using (var DbContext = new TablesDbContext())
             {
+                var IsOracle = CheckDatabase();
+
                 Edit_PART_NO = DbContext.FixedSQLi(Edit_PART_NO);
                 USER_ID = DbContext.FixedSQLi(USER_ID);
                 PLANT_NO = DbContext.FixedSQLi(PLANT_NO);
@@ -552,6 +610,13 @@ namespace Testapi.Controllers
                 }
                 string sql = "SELECT COLUMN_NAME FROM all_tab_cols where TABLE_NAME = 'PPPMORDER' and DATA_TYPE != 'NUMBER' order by INTERNAL_COLUMN_ID";
                 string sql_num = "SELECT COLUMN_NAME FROM all_tab_cols where TABLE_NAME = 'PPPMORDER' and DATA_TYPE = 'NUMBER' order by INTERNAL_COLUMN_ID";
+
+                if (!IsOracle)
+                {
+                    sql = OracleToPostgres.ChangeToPostgresSQL(sql, true);
+                    sql_num = OracleToPostgres.ChangeToPostgresSQL(sql_num, true);
+                }
+
                 string In_Con = "";
                 string In_Con_Num = "";
                 string In_Con_Num_where = "";
@@ -591,66 +656,108 @@ namespace Testapi.Controllers
                 sql_2 += "MNG_NO IN (select ROLE_ID from CPUMGSSO_USER_ROLE_MST where USER_ID = '" + USER_ID + "' ";
                 sql_2 += "and ROLE_ID in ('1','2','3','4','5','6','7','8','9','10','99')) and TABLE_NAME = 'PPPMORDER' group by FIELD_NAME,TABLE_NAME";
                 sql_2 += " ) PMTH ";
-                sql_2 += " full join PPPMTABLEhdrMNG PMHD on PMHD.TABLE_NAME = PMTH.TABLE_NAME and PMHD.FIELD_NAME = PMTH.FIELD_NAME";
-
-                sql_3 = sql_2;
-
-                sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMORDER where PART_NO =  '" + Edit_PART_NO;
-                sql_2 += "' and PLANT_NO = '" + PLANT_NO + "' ) UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
-                sql_2 += " IN(" + In_Con + " ))) ";
-                sql_2 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
-
-                sql_2 += " left join (";
+                sql_2 += " left join PPPMTABLEhdrMNG PMHD on PMHD.TABLE_NAME = PMTH.TABLE_NAME and PMHD.FIELD_NAME = PMTH.FIELD_NAME";
 
                 string UNION_SQL = "";
 
-                foreach (var item in reusult_ms_table_pppmorder)
+                if (!IsOracle)
                 {
-                    if (UNION_SQL == "")
+                    sql_2 = OracleToPostgres.ChangeToPostgresSQL(sql_2, false);
+                    sql_2 += "  LEFT JOIN ( SELECT UPPER ((json_each_text(row_to_json(t))).key) FIELD_NAME ,(json_each_text(row_to_json(t))).value FIELD_VALUE  FROM PPPMORDER t where";
+                    sql_2 += " PART_NO =  '" + Edit_PART_NO + "' and PLANT_NO = '" + PLANT_NO + "' ";
+                    sql_2 += " ) NEWTABLE  on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME  ";
+
+                    sql_2 += " left join (";
+
+                    foreach (var item in reusult_ms_table_pppmorder)
                     {
-                        UNION_SQL += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMORDER", "1");
-                    }
-                    else
-                    {
-                        string Ckvoid = "";
-                        Ckvoid += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMORDER", "1");
-                        if (Ckvoid != "")
+                        if (UNION_SQL == "")
                         {
-                            UNION_SQL += "UNION" + Ckvoid;
+                            UNION_SQL += SqlTable.GetSQLUnionPostgres(item.MS_TABLE_Find, "PPPMORDER", "1");
+                        }
+                        else
+                        {
+                            string Ckvoid = "";
+                            Ckvoid += SqlTable.GetSQLUnionPostgres(item.MS_TABLE_Find, "PPPMORDER", "1");
+                            if (Ckvoid != "")
+                            {
+                                UNION_SQL += "UNION" + Ckvoid;
+                            }
                         }
                     }
+                    sql_2 += UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+
+
+                    sql_2 += " where PMTH.TABLE_NAME = 'PPPMORDER' ";
+                    sql_2 += " and AUTH_TYPE <> '0' ";
+                    sql_2 = CheckIndiviSet ?
+                        "select TO_NUMBER(SYD.SEQ_NO) FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMORDER' and USER_ID = '" + USER_ID +
+                        "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
+                        : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+
+                    var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
+
+                    return result_2;
                 }
-                sql_2 += UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+                else
+                {
+                    sql_3 = sql_2;
 
-                sql_2 += " where PMTH.TABLE_NAME = 'PPPMORDER' ";
-                sql_2 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")";
-                sql_2 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMORDER' and USER_ID = '" + USER_ID +
-                    "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
-                    : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
+                    sql_2 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMORDER where PART_NO =  '" + Edit_PART_NO;
+                    sql_2 += "' and PLANT_NO = '" + PLANT_NO + "' ) UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
+                    sql_2 += " IN(" + In_Con + " ))) ";
+                    sql_2 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
+
+                    sql_2 += " left join (";
+
+                    foreach (var item in reusult_ms_table_pppmorder)
+                    {
+                        if (UNION_SQL == "")
+                        {
+                            UNION_SQL += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMORDER", "1");
+                        }
+                        else
+                        {
+                            string Ckvoid = "";
+                            Ckvoid += SqlTable.GetSQLUnion(item.MS_TABLE_Find, "PPPMORDER", "1");
+                            if (Ckvoid != "")
+                            {
+                                UNION_SQL += "UNION" + Ckvoid;
+                            }
+                        }
+                    }
+                    sql_2 += UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+
+                    sql_2 += " where PMTH.TABLE_NAME = 'PPPMORDER' ";
+                    sql_2 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME NOT IN (" + In_Con_Num_where + ")";
+                    sql_2 = CheckIndiviSet ?
+                        "select TO_NUMBER(SYD.SEQ_NO) FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMORDER' and USER_ID = '" + USER_ID +
+                        "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
+                        : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
 
-                sql_3 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMORDER where PART_NO =  '" + Edit_PART_NO;
-                sql_3 += "'  and PLANT_NO = '" + PLANT_NO + "') UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
-                sql_3 += " IN(" + In_Con_Num + " ))) ";
-                sql_3 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
+                    sql_3 += "  LEFT JOIN ( select FIELD_NAME,FIELD_VALUE From (select * FROM PPPMORDER where PART_NO =  '" + Edit_PART_NO;
+                    sql_3 += "'  and PLANT_NO = '" + PLANT_NO + "') UNPIVOT  INCLUDE NULLS(FIELD_VALUE FOR FIELD_NAME ";
+                    sql_3 += " IN(" + In_Con_Num + " ))) ";
+                    sql_3 += " NEWTABLE on PMTH.FIELD_NAME = NEWTABLE.FIELD_NAME ";
 
 
-                sql_3 += " left join (" + UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
+                    sql_3 += " left join (" + UNION_SQL + " ) MS_1 on  MS_1.CM_KOUNO = PMHD.MS_ITEM_NO and MS_1.CM_CODE = NEWTABLE.FIELD_VALUE ";
 
-                sql_3 += " where PMTH.TABLE_NAME = 'PPPMORDER' ";
-                sql_3 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME IN (" + In_Con_Num_where + ")";
-                sql_3 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMORDER' and USER_ID = '" + USER_ID +
-                    "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
-                    : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
+                    sql_3 += " where PMTH.TABLE_NAME = 'PPPMORDER' ";
+                    sql_3 += " and AUTH_TYPE <> 0 and PMHD.FIELD_NAME IN (" + In_Con_Num_where + ")";
+                    sql_3 = CheckIndiviSet ?
+                        "select TO_NUMBER(SYD.SEQ_NO) ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = 'PPPMORDER' and USER_ID = '" + USER_ID +
+                        "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
+                        : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
 
 
-                var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
-                var result_3 = DbContext.Database.SqlQuery<EditInfo>(sql_3).ToList();
-                result_2.AddRange(result_3);
-                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
-                return result_2;
+                    var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
+                    var result_3 = DbContext.Database.SqlQuery<EditInfo>(sql_3).ToList();
+                    result_2.AddRange(result_3);
+                    result_2.Sort((a, b) => a.FIELD_SEQ_NO - b.FIELD_SEQ_NO);
+                    return result_2;
+                }
             }
         }
         [HttpGet]
@@ -726,7 +833,7 @@ namespace Testapi.Controllers
                 var result_3 = DbContext.Database.SqlQuery<EditInfo>(sql_3).ToList();
                 result_2.AddRange(result_3);
 
-                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
 
                 return result_2;
             }
@@ -992,7 +1099,7 @@ namespace Testapi.Controllers
 
                     //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                     sql_2 = CheckIndiviSet ?
-                        "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                        "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                         "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
                         : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1010,7 +1117,7 @@ namespace Testapi.Controllers
 
                     //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                     sql_3 = CheckIndiviSet ?
-                        "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                        "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                         "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
                         : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1022,7 +1129,7 @@ namespace Testapi.Controllers
                     result_2.AddRange(result_3);
 
                     //  並び順の通りに並べる
-                    result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                    result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
                     return result_2;
                 }
             }
@@ -1037,6 +1144,8 @@ namespace Testapi.Controllers
         {
             using (var DbContext = new TablesDbContext())
             {
+                var IsOracle = CheckDatabase();
+
                 USER_ID = DbContext.FixedSQLi(USER_ID);
                 DBGRID_NAME = DbContext.FixedSQLi(DBGRID_NAME);
 
@@ -1059,10 +1168,13 @@ namespace Testapi.Controllers
                     }
                 }
                 //　個人並び順の設定があれば　SYDBGRIDのテーブルを取得、なければPPPMTABLEHDRMNGから取得
-                string sql = CheckIndiviSet ? "SELECT FIELD_NAME,FIELD_NAME_J,SEQ_NO,COL_VISIBLE FROM SYDBGRID WHERE USER_ID ='" + USER_ID + "' AND DBGRID_NAME = '" + DBGRID_NAME + "' ORDER BY SEQ_NO" :
+                string sql = CheckIndiviSet ? "SELECT FIELD_NAME,FIELD_NAME_J,TO_NUMBER(SEQ_NO) SEQ_NO,COL_VISIBLE FROM SYDBGRID WHERE USER_ID ='" + USER_ID + "' AND DBGRID_NAME = '" + DBGRID_NAME + "' ORDER BY SEQ_NO" :
                                                "SELECT  FIELD_NAME,FIELD_NAME_LOC1 FIELD_NAME_J,FIELD_SEQ_NO SEQ_NO,'1' as COL_VISIBLE, MAX(AUTH_TYPE) AUTH_TYPE from PPPMTABLEAUTHMNG where MNG_NO IN (select ROLE_ID from CPUMGSSO_USER_ROLE_MST where USER_ID = '" + USER_ID + "' " +
-                                               " AND ROLE_ID IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '99')) and TABLE_NAME = '" + DBGRID_NAME + "' and AUTH_TYPE in (1, 2) group by FIELD_NAME,FIELD_NAME_LOC1,FIELD_SEQ_NO order by FIELD_SEQ_NO ";
-
+                                               " AND ROLE_ID IN ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '99')) and TABLE_NAME = '" + DBGRID_NAME + "' and AUTH_TYPE in ('1','2') group by FIELD_NAME,FIELD_NAME_LOC1,FIELD_SEQ_NO order by FIELD_SEQ_NO ";
+                if(!IsOracle)
+                {
+                    sql = OracleToPostgres.ChangeToPostgresSQL(sql,false);
+                }
                 var result = DbContext.Database.SqlQuery<User_Setting>(sql).ToList();
                 return result;
             }
@@ -1242,7 +1354,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_2 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
                     : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1262,7 +1374,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_3 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
                     : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1274,7 +1386,7 @@ namespace Testapi.Controllers
                 result_2.AddRange(result_3);
 
                 //  並び順の通りに並べる
-                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
                 return result_2;
             }
         }
@@ -1381,7 +1493,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_2 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
                     : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1389,7 +1501,7 @@ namespace Testapi.Controllers
                 var result_2 = DbContext.Database.SqlQuery<EditInfo>(sql_2).ToList();
 
                 //  並び順の通りに並べる
-                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
                 return result_2;
             }
         }
@@ -1590,7 +1702,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_2 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
                     : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1610,7 +1722,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_3 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
                     : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1622,7 +1734,7 @@ namespace Testapi.Controllers
                 result_2.AddRange(result_3);
 
                 //  並び順の通りに並べる
-                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
                 return result_2;
             }
         }
@@ -1672,7 +1784,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_2 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
                     : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1869,7 +1981,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_2 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_2 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL and SYD.COL_VISIBLE IS NULL order by SYD.SEQ_NO"
                     : sql_2 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1889,7 +2001,7 @@ namespace Testapi.Controllers
 
                 //　もし、個人並び順が設定があれば個人並び順例を追加。なければ、通常の並び順を追加。
                 sql_3 = CheckIndiviSet ?
-                    "select SYD.SEQ_NO FIELD_SEQ_NO ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
+                    "select TO_NUMBER(SYD.SEQ_NO).FIELD_SEQ_NO  ,BASE.* from (" + sql_3 + ") BASE left join(select SEQ_NO, DBGRID_NAME, FIELD_NAME ,COL_VISIBLE from SYDBGRID where DBGRID_NAME = '" + TABLE_NAME + "' and USER_ID = '" + USER_ID +
                     "') SYD on BASE.FIELD_NAME = SYD.FIELD_NAME where SYD.FIELD_NAME IS NOT NULL  and SYD.COL_VISIBLE IS NULL  order by SYD.SEQ_NO"
                     : sql_3 + " order by PMHD.FIELD_SEQ_NO ";
 
@@ -1901,7 +2013,7 @@ namespace Testapi.Controllers
                 result_2.AddRange(result_3);
 
                 //  並び順の通りに並べる
-                result_2.Sort((a, b) => Int32.Parse(a.FIELD_SEQ_NO) - Int32.Parse(b.FIELD_SEQ_NO));
+                result_2.Sort((a, b) => a.FIELD_SEQ_NO-b.FIELD_SEQ_NO);
                 return result_2;
             }
         }
@@ -2904,7 +3016,7 @@ namespace Testapi.Controllers
 
 
                 //　IndivSetSQL 個人並び順設定ユーザーリストを取得のSQLコマンド
-                string IndivSetSQL = "select DISTINCT USER_ID from SYDBGRID where DBGRID_NAME='" + SYD.DBGRID_NAME + "'　and " + "FIELD_NAME ='" + SYD.FIELD_NAME + "' order by USER_ID";
+                string IndivSetSQL = "select DISTINCT USER_ID from SYDBGRID where DBGRID_NAME='" + SYD.DBGRID_NAME + "' and " + "FIELD_NAME ='" + SYD.FIELD_NAME + "' order by USER_ID";
                 //　resultIndiviSet 個人並び順設定ユーザーリスト
                 var resultIndiviSet = DbContext.Database.SqlQuery<IndividualSettting>(IndivSetSQL).ToList();
                 //　現在使用したユーザーは個人並び順設定確認
@@ -4061,6 +4173,7 @@ namespace Testapi.Controllers
         {
         }
 
+    
         // SQLインジェクション対策
         public static bool CheckIndivi(string USER_ID, string TABLE_NAME)
         {
